@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Map Creator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+      #map {
+/*        position: absolute; */
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 90vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="search-container">
+      <div id="search-results"></div>
+    </div>
+    <div id="controls">
+      <button id="toggle-grid">Toggle Grid</button>
+      <button id="toggle-base-layer">Toggle Base Layer</button>
+      <button id="download-image">Download Image</button>
+      <button id="download-geojson">Download GeoJSON</button>
+      <input type="file" id="upload-geojson" accept=".geojson" />
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
