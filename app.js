@@ -15,6 +15,15 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
+// Add event listeners for controls
+const toggleGridBtn = document.getElementById('toggle-grid');
+const toggleBaseLayerBtn = document.getElementById('toggle-base-layer');
+const downloadImageBtn = document.getElementById('download-image');
+const downloadGeoJSONBtn = document.getElementById('download-geojson');
+const uploadGeoJSONInput = document.getElementById('upload-geojson');
+const searchResultsTable = document.getElementById('search-results-table');
+
+// Add event handlers for controls
 L.Control.geocoder({
     defaultMarkGeocode: false,
     position: 'topleft',
@@ -22,18 +31,14 @@ L.Control.geocoder({
   })
   .on('markgeocode', function(e) {
     console.log(e);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${e.geocode.name}</td>
+      <td><a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}">Add</a></td>
+    `;
+    searchResultsTable.appendChild(row);  
   })
   .addTo(map);
-
-// Add event listeners for controls
-const toggleGridBtn = document.getElementById('toggle-grid');
-const toggleBaseLayerBtn = document.getElementById('toggle-base-layer');
-const downloadImageBtn = document.getElementById('download-image');
-const downloadGeoJSONBtn = document.getElementById('download-geojson');
-const uploadGeoJSONInput = document.getElementById('upload-geojson');
-
-// Add event handlers for controls
-// ...
 
 // Handle search functionality
 const searchResults = document.getElementById('search-results');
