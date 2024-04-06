@@ -23,25 +23,44 @@ const downloadGeoJSONBtn = document.getElementById('download-geojson');
 const uploadGeoJSONInput = document.getElementById('upload-geojson');
 const searchResultsTable = document.getElementById('search-results-table');
 
+var settings = {
+    objects : []
+};
+
 // Add event handlers for controls
 L.Control.geocoder({
-    defaultMarkGeocode: false,
+    defaultMarkGeocode: false, // Do not recentre map to serached location
     position: 'topleft',
-    geocoder: new L.Control.Geocoder.Nominatim()
+    geocoder: new L.Control.Geocoder.Nominatim({geocodingQueryParams: {polygon_geojson: 1}})
   })
   .on('markgeocode', function(e) {
-    console.log(e);
+    settings.objects.push(
+        {
+            name: e.geocode.properties.name,
+            place_id: e.geocode.properties.place_id,
+            geojson: e.geocode.properties.geojson
+        }
+    );
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${e.geocode.name}</td>
-      <td><a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}">Add</a></td>
+      <td>${e.geocode.properties.name}</td>
+      <td><a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}">Remove</a></td>
     `;
-    searchResultsTable.appendChild(row);  
+    searchResultsTable.appendChild(row);
   })
   .addTo(map);
 
 // Handle search functionality
 const searchResults = document.getElementById('search-results');
+
+searchResultsTable.addEventListener('click', (event) => {
+    if (event.target.innerText === 'REMOVE') {
+      const resultId = event.target.dataset.id;
+      settings.objects = settings.objects.filter(o => o.place_id != resultId);
+      const row = event.target.closest('tr');
+      searchResultsTable.removeChild(row);
+    }
+  });
 
 // Handle object overlay and editing
 // ...
