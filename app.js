@@ -17,7 +17,6 @@ L.control.layers(baseLayers).addTo(map);
 
 // Add event listeners for controls
 const toggleGridBtn = document.getElementById('toggle-grid');
-const toggleBaseLayerBtn = document.getElementById('toggle-base-layer');
 const downloadImageBtn = document.getElementById('download-image');
 const downloadGeoJSONBtn = document.getElementById('download-geojson');
 const uploadGeoJSONInput = document.getElementById('upload-geojson');

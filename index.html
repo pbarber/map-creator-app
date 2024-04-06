@@ -21,9 +21,9 @@
   <body>
     <div class="row">
         <div id="map" class="col s10"></div>
-        <div id="search-results" class="col s2">
+        <div id="search-results" class="col s2 center-align">
             <a class="waves-effect waves-light btn modal-trigger" href="#bottom-sheet">Settings</a>
-            <table class="highlight col s2">
+            <table class="highlight col">
                 <thead>
                 <tr>
                     <th>Name</th>
@@ -37,11 +37,10 @@
     <div id="bottom-sheet" class="modal bottom-sheet">
         <div class="modal-content">
             <h4>Settings</h4>
-            <button id="toggle-grid">Toggle Grid</button>
-            <button id="toggle-base-layer">Toggle Base Layer</button>
-            <button id="download-image">Download Image</button>
-            <button id="download-geojson">Download GeoJSON</button>
-            <input type="file" id="upload-geojson" accept=".geojson" />
+            <a class="waves-effect waves-light btn" id="toggle-grid">Toggle Grid</a>
+            <a class="waves-effect waves-light btn" id="download-image">Download Image</a>
+            <a class="waves-effect waves-light btn" id="download-geojson">Download GeoJSON</a>
+            <a class="waves-effect waves-light btn" id="upload-geojson">Upload GeoJSON</a>
         </div>
     </div>
     <div id="controls">
