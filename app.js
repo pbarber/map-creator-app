@@ -62,5 +62,16 @@ searchResultsTable.addEventListener('click', (event) => {
     }
   });
 
+document.addEventListener('DOMContentLoaded', function() {
+    var bottomSheet = document.querySelector('.bottom-sheet');
+    var bottomSheetTrigger = document.querySelector('.modal-trigger');
+    var bottomSheetInstance = M.Modal.init(bottomSheet);
+
+    bottomSheetTrigger.addEventListener('click', function(event) {
+        event.preventDefault();
+        bottomSheetInstance.open();
+    });
+});
+
 // Handle object overlay and editing
 // ...

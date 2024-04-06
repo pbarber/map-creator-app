@@ -8,7 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
       #map {
-        height: 90vh;
+        height: 100vh;
+      }
+      .bottom-sheet {
+        min-height: auto;
+        max-height: 80vh;
+        padding: 24px;
+        overflow-y: auto;
       }
     </style>
   </head>
@@ -16,6 +22,7 @@
     <div class="row">
         <div id="map" class="col s10"></div>
         <div id="search-results" class="col s2">
+            <a class="waves-effect waves-light btn modal-trigger" href="#bottom-sheet">Settings</a>
             <table class="highlight col s2">
                 <thead>
                 <tr>
@@ -27,12 +34,17 @@
             </table>
         </div>
     </div>
+    <div id="bottom-sheet" class="modal bottom-sheet">
+        <div class="modal-content">
+            <h4>Settings</h4>
+            <button id="toggle-grid">Toggle Grid</button>
+            <button id="toggle-base-layer">Toggle Base Layer</button>
+            <button id="download-image">Download Image</button>
+            <button id="download-geojson">Download GeoJSON</button>
+            <input type="file" id="upload-geojson" accept=".geojson" />
+        </div>
+    </div>
     <div id="controls">
-      <button id="toggle-grid">Toggle Grid</button>
-      <button id="toggle-base-layer">Toggle Base Layer</button>
-      <button id="download-image">Download Image</button>
-      <button id="download-geojson">Download GeoJSON</button>
-      <input type="file" id="upload-geojson" accept=".geojson" />
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
