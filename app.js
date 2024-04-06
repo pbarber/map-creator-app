@@ -37,27 +37,38 @@ L.Control.geocoder({
         {
             name: e.geocode.properties.name,
             place_id: e.geocode.properties.place_id,
-            geojson: e.geocode.properties.geojson
+            geojson: e.geocode.properties.geojson,
+            lat: e.geocode.properties.lat,
+            lon: e.geocode.properties.lon
         }
     );
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${e.geocode.properties.name}</td>
-      <td><a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}">Remove</a></td>
+      <td>
+        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="remove">
+          <span class="material-icons">delete</span>
+        </a>
+        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="centre">
+          <span class="material-icons">my_location</span>
+        </a>
+      </td>
     `;
     searchResultsTable.appendChild(row);
   })
   .addTo(map);
 
-// Handle search functionality
-const searchResults = document.getElementById('search-results');
-
 searchResultsTable.addEventListener('click', (event) => {
-    if (event.target.innerText === 'REMOVE') {
-      const resultId = event.target.dataset.id;
-      settings.objects = settings.objects.filter(o => o.place_id != resultId);
-      const row = event.target.closest('tr');
-      searchResultsTable.removeChild(row);
+    if (event.target.dataset.action === 'remove') {
+        const resultId = event.target.dataset.id;
+        settings.objects = settings.objects.filter(o => o.place_id != resultId);
+        const row = event.target.closest('tr');
+        searchResultsTable.removeChild(row);
+    } else if (event.target.dataset.action === 'centre') {
+        console.log(event.target.dataset);
+        const resultId = event.target.dataset.id;
+        const result = settings.objects.find(o => o.place_id === parseInt(resultId));
+        map.setView([result.lat, result.lon]);
     }
   });
 
