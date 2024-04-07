@@ -31,7 +31,8 @@ const toggleGridBtn = document.getElementById('toggle-grid');
 const downloadImageBtn = document.getElementById('download-image');
 const downloadGeoJSONBtn = document.getElementById('download-geojson');
 const uploadGeoJSONInput = document.getElementById('upload-geojson');
-const searchResultsTable = document.getElementById('objects-table');
+const objectsTable = document.getElementById('objects-table');
+const categoriesTable = document.getElementById('categories-table');
 
 var settings = {
     objects: [],
@@ -66,18 +67,17 @@ L.Control.geocoder({
         </a>
       </td>
     `;
-    searchResultsTable.appendChild(row);
+    objectsTable.appendChild(row);
   })
   .addTo(map);
 
-searchResultsTable.addEventListener('click', (event) => {
+objectsTable.addEventListener('click', (event) => {
     if (event.target.dataset.action === 'remove') {
         const resultId = event.target.dataset.id;
         settings.objects = settings.objects.filter(o => o.place_id != resultId);
         const row = event.target.closest('tr');
-        searchResultsTable.removeChild(row);
+        objectsTable.removeChild(row);
     } else if (event.target.dataset.action === 'centre') {
-        console.log(event.target.dataset);
         const resultId = event.target.dataset.id;
         const result = settings.objects.find(o => o.place_id === parseInt(resultId));
         map.setView([result.lat, result.lon]);
@@ -88,17 +88,49 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
     event.preventDefault();
 
     const maxId = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
-    settings.categories.push({
+    category = {
         id: maxId + 1,
         title: document.getElementById('title').value,
         colour: document.getElementById('colour').value
-    });
+    };
+    settings.categories.push(category);
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${category.title}</td>
+      <td>${category.colour}</td>
+      <td>
+        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
+          <span class="material-icons">delete</span>
+        </a>
+        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="edit">
+          <span class="material-icons">edit</span>
+        </a>
+      </td>
+    `;
+    categoriesTable.appendChild(row);
 
     const modal = M.Modal.getInstance(document.getElementById('category-modal'));
     modal.close();
 
     document.getElementById('title').value = '';
     document.getElementById('colour').value = '#ff0000';
+});
+
+categoriesTable.addEventListener('click', (event) => {
+    if (event.target.dataset.action === 'remove') {
+        const resultId = event.target.dataset.id;
+        settings.categories = settings.categories.filter(o => o.id != resultId);
+        const row = event.target.closest('tr');
+        categoriesTable.removeChild(row);
+    } else if (event.target.dataset.action === 'edit') {
+        const resultId = event.target.dataset.id;
+        const modal = M.Modal.getInstance(document.getElementById('category-modal'));
+        const result = settings.categories.find(o => o.id === parseInt(resultId));
+        document.getElementById('title').value = result.title;
+        document.getElementById('colour').value = result.colour;
+        modal.open();
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
