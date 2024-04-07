@@ -98,7 +98,9 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         const index = settings.categories.findIndex(o => o.id === parseInt(id));
         settings.categories[index].title = category.title;
         settings.categories[index].colour = category.colour;
-        // TODO: adjust table
+        const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
+        cells[0].textContent = category.title;
+        cells[1].textContent = category.colour;
     } else {
         settings.categories.push(category);
         const row = document.createElement('tr');
@@ -114,6 +116,7 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
             </a>
         </td>
         `;
+        row.setAttribute('id', 'category-row-' + category.id);
         categoriesTable.appendChild(row);
     }
 
