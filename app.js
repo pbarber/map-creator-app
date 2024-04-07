@@ -8,6 +8,17 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
   maxZoom: 19,
 });
 
+// TODO: add type management in the settings window (with name, colour)
+// TODO: associate types in the objects table
+// TODO; display objects with the associated type colour
+// TODO: allow editing of name
+// TODO: allow overlay of name on map
+// TODO: allow positioning of name on map
+// TODO: allow angle of name on map
+// TODO: include map zoom and position in settings
+// TODO: export of settings object to JSON
+// TODO: import of settings object from JSON
+
 // Create layer control and add to the map
 const baseLayers = {
   'Blank': blankLayer,
@@ -20,7 +31,7 @@ const toggleGridBtn = document.getElementById('toggle-grid');
 const downloadImageBtn = document.getElementById('download-image');
 const downloadGeoJSONBtn = document.getElementById('download-geojson');
 const uploadGeoJSONInput = document.getElementById('upload-geojson');
-const searchResultsTable = document.getElementById('search-results-table');
+const searchResultsTable = document.getElementById('objects-table');
 
 var settings = {
     objects : []
@@ -72,14 +83,45 @@ searchResultsTable.addEventListener('click', (event) => {
     }
   });
 
+document.getElementById('category-modal-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent form submission
+
+    const title = document.getElementById('title').value;
+    const color = document.getElementById('color').value;
+
+    // Create a new data object with a unique ID
+    const dataObject = {
+        id: nextId++,
+        title: title,
+        color: color
+    };
+
+    formData.push(dataObject); // Add the data object to the array
+
+    // Reset form fields
+    document.getElementById('title').value = '';
+    document.getElementById('color').value = '#ff0000';
+
+    console.log(formData); // Log the updated formData array
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     var bottomSheet = document.querySelector('.bottom-sheet');
     var bottomSheetTrigger = document.querySelector('.modal-trigger');
     var bottomSheetInstance = M.Modal.init(bottomSheet);
-
+    var modals = document.querySelectorAll('.modal');
+    var modalTriggerBtn = document.querySelector('.add-category');
+    
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
         bottomSheetInstance.open();
+    });
+  
+    M.Modal.init(modals);
+
+    modalTriggerBtn.addEventListener('click', function() {
+      var instance = M.Modal.getInstance(document.getElementById('category-modal'));
+      instance.open();
     });
 });
 

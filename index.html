@@ -25,29 +25,49 @@
   <body>
     <div class="row">
         <div id="map" class="col s10"></div>
-        <div id="search-results" class="col s2 center-align">
+        <div id="side-panel" class="col s2 center-align">
             <a class="waves-effect waves-light btn modal-trigger" href="#bottom-sheet">Settings</a>
             <table class="highlight col">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-                <tbody id="search-results-table"></tbody>
+                <tbody id="objects-table"></tbody>
             </table>
         </div>
     </div>
     <div id="bottom-sheet" class="modal bottom-sheet">
         <div class="modal-content">
-            <h4>Settings</h4>
+            <div class="row">
+                <div class="col s9"><h4>Categories</h4></div>
+                <div class="col s3"><a class="waves-effect waves-light btn add-category" href="#add-category">Add category</a></div>
+            </div>
+            <table class="highlight col">
+                <tbody id="categories-table"></tbody>
+            </table>
+            <div class="row">
+                <div class="col s9"><h4>Settings</h4></div>
+            </div>
             <a class="waves-effect waves-light btn" id="toggle-grid">Toggle Grid</a>
             <a class="waves-effect waves-light btn" id="download-image">Download Image</a>
             <a class="waves-effect waves-light btn" id="download-geojson">Download GeoJSON</a>
             <a class="waves-effect waves-light btn" id="upload-geojson">Upload GeoJSON</a>
         </div>
     </div>
-    <div id="controls">
+    <div id="category-modal" class="modal">
+        <div id="category-modal-content" class="modal-content">
+            <h4>Add a new category</h4>
+            <form id="category-modal-form">
+                <div class="input-field">
+                    <input type="text" id="title" required>
+                    <label for="title">Title</label>
+                </div>
+                <div class="input-field">
+                    <input type="color" id="color" value="#ff0000">
+                    <label for="color">Color</label>
+                </div>
+                <button type="submit" class="btn">Submit</button>
+            </form>
+        </div>
+        <div id="category-modal-footer" class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+        </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
