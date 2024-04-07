@@ -99,14 +99,12 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         settings.categories[index].title = category.title;
         settings.categories[index].colour = category.colour;
         const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
-        cells[0].textContent = category.title;
-        cells[1].textContent = category.colour;
+        cells[0].innerHTML = `<i class="colour-block" style="background: ${category.colour}"></i>${category.title}`;
     } else {
         settings.categories.push(category);
         const row = document.createElement('tr');
         row.innerHTML = `
-        <td>${category.title}</td>
-        <td>${category.colour}</td>
+        <td><i class="colour-block" style="background: ${category.colour}"></i>${category.title}</td>
         <td>
             <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
             <span class="material-icons">delete</span>
