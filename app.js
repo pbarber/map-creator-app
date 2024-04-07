@@ -96,25 +96,25 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
 
     const modal = M.Modal.getInstance(document.getElementById('category-modal'));
     modal.close();
+
+    document.getElementById('title').value = '';
+    document.getElementById('colour').value = '#ff0000';
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    var bottomSheet = document.querySelector('.bottom-sheet');
     var bottomSheetTrigger = document.querySelector('.modal-trigger');
-    var bottomSheetInstance = M.Modal.init(bottomSheet);
-    var modals = document.querySelectorAll('.modal');
-    var modalTriggerBtn = document.querySelector('.add-category');
+    var bottomSheetInstance = M.Modal.init(document.getElementById('bottom-sheet'));
+    var categoryModalTrigger = document.querySelector('.add-category');
+    var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
     
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
         bottomSheetInstance.open();
     });
-  
-    M.Modal.init(modals);
 
-    modalTriggerBtn.addEventListener('click', function() {
-      var instance = M.Modal.getInstance(document.getElementById('category-modal'));
-      instance.open();
+    categoryModalTrigger.addEventListener('click', function(event) {
+      event.preventDefault();
+      categoryModalInstance.open();
     });
 });
 
