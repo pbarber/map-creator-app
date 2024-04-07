@@ -52,14 +52,15 @@
     </div>
     <div id="category-modal" class="modal">
         <div id="category-modal-content" class="modal-content">
-            <h4>Add a new category</h4>
+            <h4 id="category-modal-title">Add a new category</h4>
             <form id="category-modal-form">
+                <input type="hidden" id="category-id" value="">
                 <div class="input-field">
-                    <input type="text" id="title" required>
+                    <input type="text" id="category-title" required>
                     <label for="title">Title</label>
                 </div>
                 <div class="input-field">
-                    <input type="color" id="colour" value="#ff0000">
+                    <input type="color" id="category-colour" value="#ff0000">
                     <label for="colour">Colour</label>
                 </div>
                 <button type="submit" class="modal-close btn">Submit</button>
