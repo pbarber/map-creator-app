@@ -34,7 +34,8 @@ const uploadGeoJSONInput = document.getElementById('upload-geojson');
 const searchResultsTable = document.getElementById('objects-table');
 
 var settings = {
-    objects : []
+    objects: [],
+    categories: [] 
 };
 
 // Add event handlers for controls
@@ -84,25 +85,17 @@ searchResultsTable.addEventListener('click', (event) => {
   });
 
 document.getElementById('category-modal-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent form submission
+    event.preventDefault();
 
-    const title = document.getElementById('title').value;
-    const color = document.getElementById('color').value;
+    const maxId = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
+    settings.categories.push({
+        id: maxId + 1,
+        title: document.getElementById('title').value,
+        colour: document.getElementById('colour').value
+    });
 
-    // Create a new data object with a unique ID
-    const dataObject = {
-        id: nextId++,
-        title: title,
-        color: color
-    };
-
-    formData.push(dataObject); // Add the data object to the array
-
-    // Reset form fields
-    document.getElementById('title').value = '';
-    document.getElementById('color').value = '#ff0000';
-
-    console.log(formData); // Log the updated formData array
+    const modal = M.Modal.getInstance(document.getElementById('category-modal'));
+    modal.close();
 });
 
 document.addEventListener('DOMContentLoaded', function() {
