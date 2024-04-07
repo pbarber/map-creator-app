@@ -88,33 +88,41 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
     event.preventDefault();
 
     const maxId = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
+    const id = document.getElementById('category-id').value;
     category = {
-        id: maxId + 1,
-        title: document.getElementById('title').value,
-        colour: document.getElementById('colour').value
+        id: (id !== "") ? parseInt(id) : (maxId + 1),
+        title: document.getElementById('category-title').value,
+        colour: document.getElementById('category-colour').value
     };
-    settings.categories.push(category);
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${category.title}</td>
-      <td>${category.colour}</td>
-      <td>
-        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
-          <span class="material-icons">delete</span>
-        </a>
-        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="edit">
-          <span class="material-icons">edit</span>
-        </a>
-      </td>
-    `;
-    categoriesTable.appendChild(row);
+    if (id !== "") {
+        const index = settings.categories.findIndex(o => o.id === parseInt(id));
+        settings.categories[index].title = category.title;
+        settings.categories[index].colour = category.colour;
+        // TODO: adjust table
+    } else {
+        settings.categories.push(category);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td>${category.title}</td>
+        <td>${category.colour}</td>
+        <td>
+            <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
+            <span class="material-icons">delete</span>
+            </a>
+            <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="edit">
+            <span class="material-icons">edit</span>
+            </a>
+        </td>
+        `;
+        categoriesTable.appendChild(row);
+    }
 
     const modal = M.Modal.getInstance(document.getElementById('category-modal'));
     modal.close();
 
-    document.getElementById('title').value = '';
-    document.getElementById('colour').value = '#ff0000';
+    document.getElementById('category-id').value = '';
+    document.getElementById('category-title').value = '';
+    document.getElementById('category-colour').value = '#ff0000';
 });
 
 categoriesTable.addEventListener('click', (event) => {
@@ -127,8 +135,10 @@ categoriesTable.addEventListener('click', (event) => {
         const resultId = event.target.dataset.id;
         const modal = M.Modal.getInstance(document.getElementById('category-modal'));
         const result = settings.categories.find(o => o.id === parseInt(resultId));
-        document.getElementById('title').value = result.title;
-        document.getElementById('colour').value = result.colour;
+        document.getElementById('category-modal-title').textContent = "Edit a category";
+        document.getElementById('category-id').value = result.id;
+        document.getElementById('category-title').value = result.title;
+        document.getElementById('category-colour').value = result.colour;
         modal.open();
     }
 });
@@ -145,8 +155,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     categoryModalTrigger.addEventListener('click', function(event) {
-      event.preventDefault();
-      categoryModalInstance.open();
+        event.preventDefault();
+        document.getElementById('category-modal-title').textContent = "Add a new category";
+        document.getElementById('category-id').value = '';
+        document.getElementById('category-title').value = '';
+        document.getElementById('category-colour').value = '#ff0000';
+        categoryModalInstance.open();
     });
 });
 
