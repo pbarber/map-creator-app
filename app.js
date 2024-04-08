@@ -8,7 +8,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
   maxZoom: 19,
 });
 
-// TODO: add type management in the settings window (with name, colour)
 // TODO: associate types in the objects table
 // TODO; display objects with the associated type colour
 // TODO: allow editing of name
@@ -48,7 +47,7 @@ L.Control.geocoder({
   .on('markgeocode', function(e) {
     settings.objects.push(
         {
-            name: e.geocode.properties.name,
+            title: e.geocode.properties.name,
             place_id: e.geocode.properties.place_id,
             geojson: e.geocode.properties.geojson,
             lat: e.geocode.properties.lat,
@@ -65,8 +64,12 @@ L.Control.geocoder({
         <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="centre">
           <span class="material-icons">my_location</span>
         </a>
+        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="edit">
+          <span class="material-icons">edit</span>
+        </a>
       </td>
     `;
+    row.setAttribute('id', 'object-row-' + e.geocode.properties.place_id);
     objectsTable.appendChild(row);
   })
   .addTo(map);
@@ -81,8 +84,34 @@ objectsTable.addEventListener('click', (event) => {
         const resultId = event.target.dataset.id;
         const result = settings.objects.find(o => o.place_id === parseInt(resultId));
         map.setView([result.lat, result.lon]);
+    } else if (event.target.dataset.action === 'edit') {
+        const resultId = event.target.dataset.id;
+        const modal = M.Modal.getInstance(document.getElementById('object-modal'));
+        const result = settings.objects.find(o => o.place_id === parseInt(resultId));
+        document.getElementById('object-id').value = result.place_id;
+        document.getElementById('object-title').value = result.title;
+//        document.getElementById('object-category').value = result.category;
+        modal.open();
     }
-  });
+});
+
+document.getElementById('object-modal-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    object = {
+        id: document.getElementById('object-id').value,
+        title: document.getElementById('object-title').value,
+        category: document.getElementById('object-category').value
+    };
+    const index = settings.objects.findIndex(o => o.place_id === parseInt(object.id));
+    settings.objects[index].title = object.title;
+    settings.objects[index].category = object.category;
+    const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
+    cells[0].innerHTML = `<td>${object.title}</td>`;
+
+    const modal = M.Modal.getInstance(document.getElementById('object-modal'));
+    modal.close();
+});
 
 document.getElementById('category-modal-form').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -149,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var bottomSheetInstance = M.Modal.init(document.getElementById('bottom-sheet'));
     var categoryModalTrigger = document.querySelector('.add-category');
     var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
+    M.Modal.init(document.getElementById('object-modal'));
     
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
@@ -164,6 +194,3 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryModalInstance.open();
     });
 });
-
-// Handle object overlay and editing
-// ...
