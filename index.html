@@ -62,15 +62,21 @@
             <h4 id="category-modal-title">Add a new category</h4>
             <form id="category-modal-form">
                 <input type="hidden" id="category-id" value="">
-                <div class="input-field">
-                    <input type="text" id="category-title" required>
-                    <label for="category-title" class="active">Title</label>
+                <div class="row">
+                    <div class="input-field">
+                        <input type="text" id="category-title" required>
+                        <label for="category-title" class="active">Title</label>
+                    </div>
                 </div>
-                <div class="input-field">
-                    <input type="color" id="category-colour" value="#ff0000">
-                    <label for="category-colour" class="active">Colour</label>
+                <div class="row">
+                    <div class="input-field">
+                        <input type="color" id="category-colour" value="#ff0000">
+                        <label for="category-colour" class="active">Colour</label>
+                    </div>
                 </div>
-                <button type="submit" class="modal-close btn">Submit</button>
+                <div class="row">
+                    <button type="submit" class="modal-close btn">Submit</button>
+                </div>
             </form>
         </div>
     </div>
@@ -79,15 +85,21 @@
             <h4 id="object-modal-title">Edit an object</h4>
             <form id="object-modal-form">
                 <input type="hidden" id="object-id" value="">
-                <div class="input-field">
-                    <input type="text" id="object-title" required>
-                    <label for="object-title" class="active">Title</label>
+                <div class="row">
+                    <div class="input-field">
+                        <input type="text" id="object-title" required>
+                        <label for="object-title" class="active">Title</label>
+                    </div>
                 </div>
-                <div class="input-field">
-                    <select id="object-category" class="material-select"></select>
-                    <label for="object-category" class="active">Category</label>
+                <div class="row">
+                    <div class="input-field">
+                        <select id="object-category" class="material-select"></select>
+                        <label for="object-category" class="active">Category</label>
+                    </div>
                 </div>
-                <button type="submit" class="modal-close btn">Submit</button>
+                <div class="row">
+                    <button type="submit" class="modal-close btn">Submit</button>
+                </div>
             </form>
         </div>
     </div>

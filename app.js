@@ -74,6 +74,16 @@ L.Control.geocoder({
   })
   .addTo(map);
 
+
+function createOption(text, value, selected, disabled) {
+    var el = document.createElement("option");
+    el.text = text;
+    el.value = value;
+    el.selected = selected;
+    el.disabled = disabled;
+    return(el);
+}
+
 objectsTable.addEventListener('click', (event) => {
     if (event.target.dataset.action === 'remove') {
         const resultId = event.target.dataset.id;
@@ -145,6 +155,8 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         `;
         row.setAttribute('id', 'category-row-' + category.id);
         categoriesTable.appendChild(row);
+        document.getElementById("object-category").append(createOption(category.title, 'object-category-' + category.id, false, false));
+        M.FormSelect.init(document.getElementById("object-category"));
     }
 
     const modal = M.Modal.getInstance(document.getElementById('category-modal'));
