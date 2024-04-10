@@ -38,6 +38,8 @@ var settings = {
     categories: []
 };
 
+var layers = {};
+
 function createOption(text, value, id, selected, disabled) {
     var el = document.createElement("option");
     el.text = text;
@@ -76,6 +78,9 @@ function addObject(object) {
     `;
     row.setAttribute('id', 'object-row-' + object.id);
     objectsTable.appendChild(row);
+    // Recreate the relevant map layer
+    map.removeLayer(layers[object.category]);
+    layers[object.category] = L.geoJson(object.geojson, {style: layerStyle(settings.categories.find(o => o.id === object.category))}).addTo(map)
 }
 
 function editObject(object) {
@@ -142,6 +147,15 @@ document.getElementById('object-modal-form').addEventListener('submit', function
     M.Modal.getInstance(document.getElementById('object-modal')).close();
 });
 
+function layerStyle(category) {
+    return {
+        fillColor: category.colour,
+        weight: 0,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+}
+
 function addCategory(category) {
     if (!category.hasOwnProperty('id')) {
         // Ensure no ID clashes for new categories
@@ -167,6 +181,8 @@ function addCategory(category) {
     // Add option to dropdown for object category
     document.getElementById("object-category").append(createOption(category.title, category.id, 'object-category-' + category.id, false, false));
     M.FormSelect.init(document.getElementById("object-category"));
+    // Add a new empty layer to the map
+    layers[category.id] = L.geoJson(null, {style: layerStyle(category)}).addTo(map)
 }
 
 function updateCategory(category) {
@@ -180,6 +196,9 @@ function updateCategory(category) {
     // Update the dropdown for object category
     document.getElementById('object-category-' + category.id).text = category.title;
     M.FormSelect.init(document.getElementById("object-category"));
+    // Update the map
+    map.removeLayer(layers[category.id]);
+    layers[category.id] = L.geoJson(null, {style: layerStyle(category)}).addTo(map)
 }
 
 function removeCategory(id) {
@@ -196,6 +215,8 @@ function removeCategory(id) {
         o.category = newid;
         editObject(o);
     });
+    // Remove the layer from the map
+    map.removeLayer(layers[id]);
 }
 
 function setCategoryFormFields(add, category) {
