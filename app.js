@@ -48,6 +48,13 @@ function createOption(text, value, id, selected, disabled) {
     return(el);
 }
 
+function selectOption(selectorId, selected) {
+    var select = document.getElementById(selectorId);
+    for (var i=0; i<select.length; i++) {
+        select[i].selected = (select[i].value === selected);
+    }
+}
+
 function addObject(object) {
     // Add the object to the settings storage
     settings.objects.push(object);
@@ -100,7 +107,8 @@ L.Control.geocoder({
         id: e.geocode.properties.place_id,
         geojson: e.geocode.properties.geojson,
         lat: e.geocode.properties.lat,
-        lon: e.geocode.properties.lon
+        lon: e.geocode.properties.lon,
+        category: settings.categories[0].id
     });
   })
   .addTo(map);
@@ -116,7 +124,8 @@ objectsTable.addEventListener('click', (event) => {
         const result = settings.objects.find(o => o.id === id);
         document.getElementById('object-id').value = result.id;
         document.getElementById('object-title').value = result.title;
-//        document.getElementById('object-category').value = result.category;
+        selectOption('object-category', result.category.toString());
+        M.FormSelect.init(document.getElementById("object-category"));
         M.Modal.getInstance(document.getElementById('object-modal')).open();
     }
 });
@@ -125,9 +134,9 @@ document.getElementById('object-modal-form').addEventListener('submit', function
     event.preventDefault();
 
     editObject({
-        id: document.getElementById('object-id').value,
+        id: parseInt(document.getElementById('object-id').value),
         title: document.getElementById('object-title').value,
-        category: document.getElementById('object-category').value
+        category: parseInt(document.getElementById('object-category').value)
     });
 
     M.Modal.getInstance(document.getElementById('object-modal')).close();
@@ -136,7 +145,7 @@ document.getElementById('object-modal-form').addEventListener('submit', function
 function addCategory(category) {
     if (!category.hasOwnProperty('id')) {
         // Ensure no ID clashes for new categories
-        category.id = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
+        category.id = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1) + 1;
     }
     // New record - add to settings
     settings.categories.push(category);
@@ -175,16 +184,23 @@ function updateCategory(category) {
 
 function removeCategory(id) {
     // Remove from settings
-    settings.categories = settings.categories.filter(o => o.id != id);
+    settings.categories = settings.categories.filter(o => (o.id !== id));
     // Remove row from categories table
     document.getElementById('category-row-' + id).remove();
     // Remove option from categories dropdown
     document.getElementById('object-category-' + id).remove();
     M.FormSelect.init(document.getElementById("object-category"));
+    // Remove category from any objects which have it set
+    const newid = settings.categories[0].id;
+    settings.objects.filter(o => (o.id === id)).map(function(o) {
+        o.category = newid;
+        editObject(o);
+    });
 }
 
 function setCategoryFormFields(add, category) {
     if (add) {
+        document.getElementById('category-modal-title').textContent = "Add a new category";
         document.getElementById('category-id').value = '';
         document.getElementById('category-title').value = '';
         document.getElementById('category-colour').value = '#ff0000';
@@ -194,7 +210,6 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-title').value = category.title;
         document.getElementById('category-colour').value = category.colour;
     }
-
 }
 
 document.getElementById('category-modal-form').addEventListener('submit', function(event) {
@@ -218,12 +233,15 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
 });
 
 categoriesTable.addEventListener('click', (event) => {
+    const id = parseInt(event.target.dataset.id);
     if (event.target.dataset.action === 'remove') {
         // Remove all evidence of the category
-        removeCategory(event.target.dataset.id);
+        if (settings.categories.length > 1) {
+            removeCategory(id);
+        } // TODO: add warning for this case
     } else if (event.target.dataset.action === 'edit') {
         // Set up the modal fields and open the modal
-        setCategoryFormFields(false, settings.categories.find(o => o.id === parseInt(event.target.dataset.id)));
+        setCategoryFormFields(false, settings.categories.find(o => (o.id === id)));
         M.Modal.getInstance(document.getElementById('category-modal')).open();
     }
 });
@@ -245,4 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setCategoryFormFields(true);
         categoryModalInstance.open();
     });
+
+    addCategory({title: 'Default', id: 0, colour: '#ff0000'});
 });
