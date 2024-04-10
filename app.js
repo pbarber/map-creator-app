@@ -74,7 +74,6 @@ L.Control.geocoder({
   })
   .addTo(map);
 
-
 function createOption(text, value, id, selected, disabled) {
     var el = document.createElement("option");
     el.text = text;
@@ -175,6 +174,8 @@ categoriesTable.addEventListener('click', (event) => {
         settings.categories = settings.categories.filter(o => o.id != resultId);
         const row = event.target.closest('tr');
         categoriesTable.removeChild(row);
+        document.getElementById('object-category-' + resultId).remove();
+        M.FormSelect.init(document.getElementById("object-category"));
     } else if (event.target.dataset.action === 'edit') {
         const resultId = event.target.dataset.id;
         const modal = M.Modal.getInstance(document.getElementById('category-modal'));
