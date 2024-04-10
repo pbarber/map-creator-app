@@ -35,44 +35,8 @@ const categoriesTable = document.getElementById('categories-table');
 
 var settings = {
     objects: [],
-    categories: [] 
+    categories: []
 };
-
-// Add event handlers for controls
-L.Control.geocoder({
-    defaultMarkGeocode: false, // Do not recentre map to serached location
-    position: 'topleft',
-    geocoder: new L.Control.Geocoder.Nominatim({geocodingQueryParams: {polygon_geojson: 1}})
-  })
-  .on('markgeocode', function(e) {
-    settings.objects.push(
-        {
-            title: e.geocode.properties.name,
-            place_id: e.geocode.properties.place_id,
-            geojson: e.geocode.properties.geojson,
-            lat: e.geocode.properties.lat,
-            lon: e.geocode.properties.lon
-        }
-    );
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${e.geocode.properties.name}</td>
-      <td>
-        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="remove">
-          <span class="material-icons">delete</span>
-        </a>
-        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="centre">
-          <span class="material-icons">my_location</span>
-        </a>
-        <a class="waves-effect waves-light btn-small" data-id="${e.geocode.properties.place_id}" data-action="edit">
-          <span class="material-icons">edit</span>
-        </a>
-      </td>
-    `;
-    row.setAttribute('id', 'object-row-' + e.geocode.properties.place_id);
-    objectsTable.appendChild(row);
-  })
-  .addTo(map);
 
 function createOption(text, value, id, selected, disabled) {
     var el = document.createElement("option");
@@ -84,107 +48,183 @@ function createOption(text, value, id, selected, disabled) {
     return(el);
 }
 
+function addObject(object) {
+    // Add the object to the settings storage
+    settings.objects.push(object);
+    // Add a new row to the objects table
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${object.title}</td>
+      <td>
+        <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="remove">
+          <span class="material-icons">delete</span>
+        </a>
+        <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="centre">
+          <span class="material-icons">my_location</span>
+        </a>
+        <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="edit">
+          <span class="material-icons">edit</span>
+        </a>
+      </td>
+    `;
+    row.setAttribute('id', 'object-row-' + object.id);
+    objectsTable.appendChild(row);
+}
+
+function editObject(object) {
+    // Update the setting storage
+    const index = settings.objects.findIndex(o => o.id === parseInt(object.id));
+    settings.objects[index].title = object.title;
+    settings.objects[index].category = object.category;
+    // Update the object table row
+    const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
+    cells[0].innerHTML = `<td>${object.title}</td>`;
+}
+
+function removeObject(id) {
+    // Remove from settings store
+    settings.objects = settings.objects.filter(o => o.id != id);
+    // Remove from objects table
+    document.getElementById('object-row-' + id).remove();
+}
+
+// Add event handlers for controls
+L.Control.geocoder({
+    defaultMarkGeocode: false, // Do not recentre map to serached location
+    position: 'topleft',
+    geocoder: new L.Control.Geocoder.Nominatim({geocodingQueryParams: {polygon_geojson: 1}})
+  })
+  .on('markgeocode', function(e) {
+    addObject({
+        title: e.geocode.properties.name,
+        id: e.geocode.properties.place_id,
+        geojson: e.geocode.properties.geojson,
+        lat: e.geocode.properties.lat,
+        lon: e.geocode.properties.lon
+    });
+  })
+  .addTo(map);
+
 objectsTable.addEventListener('click', (event) => {
+    const id = parseInt(event.target.dataset.id);
     if (event.target.dataset.action === 'remove') {
-        const resultId = event.target.dataset.id;
-        settings.objects = settings.objects.filter(o => o.place_id != resultId);
-        const row = event.target.closest('tr');
-        objectsTable.removeChild(row);
+        removeObject(id);
     } else if (event.target.dataset.action === 'centre') {
-        const resultId = event.target.dataset.id;
-        const result = settings.objects.find(o => o.place_id === parseInt(resultId));
+        const result = settings.objects.find(o => o.id === id);
         map.setView([result.lat, result.lon]);
     } else if (event.target.dataset.action === 'edit') {
-        const resultId = event.target.dataset.id;
-        const modal = M.Modal.getInstance(document.getElementById('object-modal'));
-        const result = settings.objects.find(o => o.place_id === parseInt(resultId));
-        document.getElementById('object-id').value = result.place_id;
+        const result = settings.objects.find(o => o.id === id);
+        document.getElementById('object-id').value = result.id;
         document.getElementById('object-title').value = result.title;
 //        document.getElementById('object-category').value = result.category;
-        modal.open();
+        M.Modal.getInstance(document.getElementById('object-modal')).open();
     }
 });
 
 document.getElementById('object-modal-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    object = {
+    editObject({
         id: document.getElementById('object-id').value,
         title: document.getElementById('object-title').value,
         category: document.getElementById('object-category').value
-    };
-    const index = settings.objects.findIndex(o => o.place_id === parseInt(object.id));
-    settings.objects[index].title = object.title;
-    settings.objects[index].category = object.category;
-    const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
-    cells[0].innerHTML = `<td>${object.title}</td>`;
+    });
 
-    const modal = M.Modal.getInstance(document.getElementById('object-modal'));
-    modal.close();
+    M.Modal.getInstance(document.getElementById('object-modal')).close();
 });
+
+function addCategory(category) {
+    if (!category.hasOwnProperty('id')) {
+        // Ensure no ID clashes for new categories
+        category.id = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
+    }
+    // New record - add to settings
+    settings.categories.push(category);
+    // Add row to the category table
+    const row = document.createElement('tr');
+    row.innerHTML = `
+    <td><i class="colour-block" style="background: ${category.colour}"></i>${category.title}</td>
+    <td>
+        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
+        <span class="material-icons">delete</span>
+        </a>
+        <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="edit">
+        <span class="material-icons">edit</span>
+        </a>
+    </td>
+    `;
+    row.setAttribute('id', 'category-row-' + category.id);
+    categoriesTable.appendChild(row);
+    // Add option to dropdown for object category
+    document.getElementById("object-category").append(createOption(category.title, category.id, 'object-category-' + category.id, false, false));
+    M.FormSelect.init(document.getElementById("object-category"));
+}
+
+function updateCategory(category) {
+    // Update to existing record - store changes to settings
+    const index = settings.categories.findIndex(o => o.id === parseInt(category.id));
+    settings.categories[index].title = category.title;
+    settings.categories[index].colour = category.colour;
+    // Update the category table
+    const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
+    cells[0].innerHTML = `<i class="colour-block" style="background: ${category.colour}"></i>${category.title}`;
+    // Update the dropdown for object category
+    document.getElementById('object-category-' + category.id).text = category.title;
+    M.FormSelect.init(document.getElementById("object-category"));
+}
+
+function removeCategory(id) {
+    // Remove from settings
+    settings.categories = settings.categories.filter(o => o.id != id);
+    // Remove row from categories table
+    document.getElementById('category-row-' + id).remove();
+    // Remove option from categories dropdown
+    document.getElementById('object-category-' + id).remove();
+    M.FormSelect.init(document.getElementById("object-category"));
+}
+
+function setCategoryFormFields(add, category) {
+    if (add) {
+        document.getElementById('category-id').value = '';
+        document.getElementById('category-title').value = '';
+        document.getElementById('category-colour').value = '#ff0000';
+    } else {
+        document.getElementById('category-modal-title').textContent = "Edit a category";
+        document.getElementById('category-id').value = category.id;
+        document.getElementById('category-title').value = category.title;
+        document.getElementById('category-colour').value = category.colour;
+    }
+
+}
 
 document.getElementById('category-modal-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const maxId = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1);
+    // Get the data from the form
     const id = document.getElementById('category-id').value;
-    category = {
-        id: (id !== "") ? parseInt(id) : (maxId + 1),
+    var category = {
         title: document.getElementById('category-title').value,
         colour: document.getElementById('category-colour').value
     };
+    // Handle add or edit
     if (id !== "") {
-        const index = settings.categories.findIndex(o => o.id === parseInt(id));
-        settings.categories[index].title = category.title;
-        settings.categories[index].colour = category.colour;
-        const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
-        cells[0].innerHTML = `<i class="colour-block" style="background: ${category.colour}"></i>${category.title}`;
-        document.getElementById('object-category-' + category.id).text = category.title;
+        category.id = id;
+        updateCategory(category);
     } else {
-        settings.categories.push(category);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-        <td><i class="colour-block" style="background: ${category.colour}"></i>${category.title}</td>
-        <td>
-            <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
-            <span class="material-icons">delete</span>
-            </a>
-            <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="edit">
-            <span class="material-icons">edit</span>
-            </a>
-        </td>
-        `;
-        row.setAttribute('id', 'category-row-' + category.id);
-        categoriesTable.appendChild(row);
-        document.getElementById("object-category").append(createOption(category.title, category.id, 'object-category-' + category.id, false, false));
+        addCategory(category);
     }
-    M.FormSelect.init(document.getElementById("object-category"));
-
-    const modal = M.Modal.getInstance(document.getElementById('category-modal'));
-    modal.close();
-
-    document.getElementById('category-id').value = '';
-    document.getElementById('category-title').value = '';
-    document.getElementById('category-colour').value = '#ff0000';
+    // Close the modal
+    M.Modal.getInstance(document.getElementById('category-modal')).close();
 });
 
 categoriesTable.addEventListener('click', (event) => {
     if (event.target.dataset.action === 'remove') {
-        const resultId = event.target.dataset.id;
-        settings.categories = settings.categories.filter(o => o.id != resultId);
-        const row = event.target.closest('tr');
-        categoriesTable.removeChild(row);
-        document.getElementById('object-category-' + resultId).remove();
-        M.FormSelect.init(document.getElementById("object-category"));
+        // Remove all evidence of the category
+        removeCategory(event.target.dataset.id);
     } else if (event.target.dataset.action === 'edit') {
-        const resultId = event.target.dataset.id;
-        const modal = M.Modal.getInstance(document.getElementById('category-modal'));
-        const result = settings.categories.find(o => o.id === parseInt(resultId));
-        document.getElementById('category-modal-title').textContent = "Edit a category";
-        document.getElementById('category-id').value = result.id;
-        document.getElementById('category-title').value = result.title;
-        document.getElementById('category-colour').value = result.colour;
-        modal.open();
+        // Set up the modal fields and open the modal
+        setCategoryFormFields(false, settings.categories.find(o => o.id === parseInt(event.target.dataset.id)));
+        M.Modal.getInstance(document.getElementById('category-modal')).open();
     }
 });
 
@@ -194,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var categoryModalTrigger = document.querySelector('.add-category');
     var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
     M.Modal.init(document.getElementById('object-modal'));
-    
+
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
         bottomSheetInstance.open();
@@ -202,10 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     categoryModalTrigger.addEventListener('click', function(event) {
         event.preventDefault();
-        document.getElementById('category-modal-title').textContent = "Add a new category";
-        document.getElementById('category-id').value = '';
-        document.getElementById('category-title').value = '';
-        document.getElementById('category-colour').value = '#ff0000';
+        setCategoryFormFields(true);
         categoryModalInstance.open();
     });
 });
