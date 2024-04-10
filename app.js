@@ -75,10 +75,11 @@ L.Control.geocoder({
   .addTo(map);
 
 
-function createOption(text, value, selected, disabled) {
+function createOption(text, value, id, selected, disabled) {
     var el = document.createElement("option");
     el.text = text;
     el.value = value;
+    el.id = id;
     el.selected = selected;
     el.disabled = disabled;
     return(el);
@@ -139,6 +140,7 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         settings.categories[index].colour = category.colour;
         const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
         cells[0].innerHTML = `<i class="colour-block" style="background: ${category.colour}"></i>${category.title}`;
+        document.getElementById('object-category-' + category.id).text = category.title;
     } else {
         settings.categories.push(category);
         const row = document.createElement('tr');
@@ -155,9 +157,9 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         `;
         row.setAttribute('id', 'category-row-' + category.id);
         categoriesTable.appendChild(row);
-        document.getElementById("object-category").append(createOption(category.title, 'object-category-' + category.id, false, false));
-        M.FormSelect.init(document.getElementById("object-category"));
+        document.getElementById("object-category").append(createOption(category.title, category.id, 'object-category-' + category.id, false, false));
     }
+    M.FormSelect.init(document.getElementById("object-category"));
 
     const modal = M.Modal.getInstance(document.getElementById('category-modal'));
     modal.close();
