@@ -12,7 +12,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
 // TODO: include map zoom and position in settings
-// TODO: export of settings object to JSON
 // TODO: import of settings object from JSON
 
 // Create layer control and add to the map
@@ -25,7 +24,6 @@ L.control.layers(baseLayers).addTo(map);
 // Add event listeners for controls
 const toggleGridBtn = document.getElementById('toggle-grid');
 const downloadImageBtn = document.getElementById('download-image');
-const downloadGeoJSONBtn = document.getElementById('download-geojson');
 const uploadGeoJSONInput = document.getElementById('upload-geojson');
 const objectsTable = document.getElementById('objects-table');
 const categoriesTable = document.getElementById('categories-table');
@@ -279,6 +277,7 @@ categoriesTable.addEventListener('click', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    var downloadGeoJSONBtn = document.getElementById('download-geojson');
     var bottomSheetTrigger = document.querySelector('.modal-trigger');
     var bottomSheetInstance = M.Modal.init(document.getElementById('bottom-sheet'));
     var categoryModalTrigger = document.querySelector('.add-category');
@@ -296,5 +295,17 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryModalInstance.open();
     });
 
+    downloadGeoJSONBtn.addEventListener('click', function() {
+        const json = JSON.stringify(settings, null, 2); // Convert the object to JSON with indentation for readability
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'map-creator' + (new Date()).toISOString() + '.json'; // Set the desired file name
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Add a default category so that searches have something to attach to
     addCategory({title: 'Default', id: 0, colour: '#ff0000'});
 });
