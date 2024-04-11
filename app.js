@@ -8,8 +8,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
   maxZoom: 19,
 });
 
-// TODO; display objects with the associated type colour
-// TODO: allow editing of name
 // TODO: allow overlay of name on map
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
@@ -270,7 +268,9 @@ categoriesTable.addEventListener('click', (event) => {
         // Remove all evidence of the category
         if (settings.categories.length > 1) {
             removeCategory(id);
-        } // TODO: add warning for this case
+        } else {
+            M.toast({html: 'Cannot remove remaining category, edit it instead'})
+        }
     } else if (event.target.dataset.action === 'edit') {
         // Set up the modal fields and open the modal
         setCategoryFormFields(false, settings.categories.find(o => (o.id === id)));
