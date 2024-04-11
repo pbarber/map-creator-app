@@ -137,6 +137,7 @@ objectsTable.addEventListener('click', (event) => {
         const result = settings.objects.find(o => o.id === id);
         document.getElementById('object-id').value = result.id;
         document.getElementById('object-title').value = result.title;
+        M.updateTextFields();
         selectOption('object-category', result.category.toString());
         M.FormSelect.init(document.getElementById("object-category"));
         M.Modal.getInstance(document.getElementById('object-modal')).open();
@@ -238,6 +239,7 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-title').value = category.title;
         document.getElementById('category-colour').value = category.colour;
     }
+    M.updateTextFields();
 }
 
 document.getElementById('category-modal-form').addEventListener('submit', function(event) {
