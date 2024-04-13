@@ -51,10 +51,24 @@
             <div class="row">
                 <div class="col s9"><h4>Settings</h4></div>
             </div>
-            <a class="waves-effect waves-light btn" id="toggle-grid">Toggle Grid</a>
-            <a class="waves-effect waves-light btn" id="download-image">Download Image</a>
-            <a class="waves-effect waves-light btn" id="download-geojson">Download GeoJSON</a>
-            <a class="waves-effect waves-light btn" id="upload-geojson">Upload GeoJSON</a>
+            <div class="row">
+                <a class="waves-effect waves-light btn" id="toggle-grid">Toggle Grid</a>
+                <a class="waves-effect waves-light btn" id="download-image">Download Image</a>
+                <a class="waves-effect waves-light btn" id="download-geojson">Download Settings</a>
+            </div>
+            <div class="row">
+                <form id="file-upload-form">
+                    <div class="file-field input-field">
+                        <div class="btn">
+                            <span>Upload Settings</span>
+                            <input name="json" type="file" id="upload-geojson">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text">
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <div id="category-modal" class="modal">

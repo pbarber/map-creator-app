@@ -24,7 +24,6 @@ L.control.layers(baseLayers).addTo(map);
 // Add event listeners for controls
 const toggleGridBtn = document.getElementById('toggle-grid');
 const downloadImageBtn = document.getElementById('download-image');
-const uploadGeoJSONInput = document.getElementById('upload-geojson');
 const objectsTable = document.getElementById('objects-table');
 const categoriesTable = document.getElementById('categories-table');
 
@@ -218,11 +217,14 @@ function removeCategory(id) {
     document.getElementById('object-category-' + id).remove();
     M.FormSelect.init(document.getElementById("object-category"));
     // Remove category from any objects which have it set
-    const newid = settings.categories[0].id;
-    settings.objects.filter(o => (o.id === id)).map(function(o) {
-        o.category = newid;
-        editObject(o);
-    });
+    const objectsAffected = settings.objects.filter(o => (o.category === id));
+    if (objectsAffected.length > 0) {
+        const newid = settings.categories[0].id;
+        objectsAffected.map(function(o) {
+            o.category = newid;
+            editObject(o);
+        });
+    }
     // Remove the layer from the map
     map.removeLayer(layers[id]);
 }
@@ -284,7 +286,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var bottomSheetInstance = M.Modal.init(document.getElementById('bottom-sheet'));
     var categoryModalTrigger = document.querySelector('.add-category');
     var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
+    var uploadGeoJSONInput = document.getElementById('upload-geojson');
     M.Modal.init(document.getElementById('object-modal'));
+    M.updateTextFields();
 
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
@@ -306,6 +310,33 @@ document.addEventListener('DOMContentLoaded', function() {
         a.download = 'map-creator' + (new Date()).toISOString() + '.json'; // Set the desired file name
         a.click();
         URL.revokeObjectURL(url);
+    });
+
+    uploadGeoJSONInput.addEventListener('change', function(event) {
+        const fileblob = this.files[0];
+        if (fileblob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const upload = JSON.parse(reader.result);
+                if (upload.hasOwnProperty('categories') && upload.hasOwnProperty('objects')) {
+                    // First remove all existing objects
+                    while (settings.objects.length > 0) {
+                        removeObject(settings.objects[0].id);
+                    }
+                    // Next remove all existing categories
+                    while (settings.categories.length > 0) {
+                        removeCategory(settings.categories[0].id);
+                    }
+                    // Add the new categories
+                    upload.categories.map(o => addCategory(o));
+                    // Add the new objects
+                    upload.objects.map(o => addObject(o));
+                } else {
+                    M.toast({html: 'Cannot parse uploaded file'})
+                }
+            };
+            reader.readAsText(fileblob);
+        }
     });
 
     // Add a default category so that searches have something to attach to
