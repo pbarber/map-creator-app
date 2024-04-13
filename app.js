@@ -11,6 +11,7 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 // TODO: allow overlay of name on map
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
+// TODO: add streams and roads
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -49,7 +50,7 @@ function selectOption(selectorId, selected) {
     }
 }
 
-function updateLayer(category) {
+function updateObjectLayer(category) {
     map.removeLayer(layers[category]);
     const layer = settings.objects.filter(o => (o.category === category)).map(o => o.geojson);
     layers[category] = L.geoJson(layer, {style: layerStyle(settings.categories.find(o => o.id === category))}).addTo(map)
@@ -77,7 +78,7 @@ function addObject(object) {
     row.setAttribute('id', 'object-row-' + object.id);
     objectsTable.appendChild(row);
     // Recreate the relevant map layer
-    updateLayer(object.category);
+    updateObjectLayer(object.category);
 }
 
 function editObject(object) {
@@ -86,13 +87,14 @@ function editObject(object) {
     const categoryStart = settings.objects[index].category;
     settings.objects[index].title = object.title;
     settings.objects[index].category = object.category;
+    settings.objects[index].label = object.label;
     // Update the object table row
     const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
     cells[0].innerHTML = `<td>${object.title}</td>`;
     // Update the map if category has changed
     if (categoryStart !== object.category) {
-        updateLayer(object.category);
-        updateLayer(categoryStart);
+        updateObjectLayer(object.category);
+        updateObjectLayer(categoryStart);
     }
 }
 
@@ -103,7 +105,7 @@ function removeObject(id) {
     // Remove from objects table
     document.getElementById('object-row-' + id).remove();
     // Recreate the relevant map layer
-    updateLayer(object.category);
+    updateObjectLayer(object.category);
 }
 
 // Add event handlers for controls
@@ -119,7 +121,8 @@ L.Control.geocoder({
         geojson: e.geocode.properties.geojson,
         lat: e.geocode.properties.lat,
         lon: e.geocode.properties.lon,
-        category: settings.categories[0].id
+        category: settings.categories[0].id,
+        label: true
     });
   })
   .addTo(map);
@@ -135,6 +138,7 @@ objectsTable.addEventListener('click', (event) => {
         const result = settings.objects.find(o => o.id === id);
         document.getElementById('object-id').value = result.id;
         document.getElementById('object-title').value = result.title;
+        document.getElementById('object-label').checked = (result.hasOwnProperty('label') ? result.label : true);
         M.updateTextFields();
         selectOption('object-category', result.category.toString());
         M.FormSelect.init(document.getElementById("object-category"));
@@ -148,7 +152,8 @@ document.getElementById('object-modal-form').addEventListener('submit', function
     editObject({
         id: parseInt(document.getElementById('object-id').value),
         title: document.getElementById('object-title').value,
-        category: parseInt(document.getElementById('object-category').value)
+        category: parseInt(document.getElementById('object-category').value),
+        label: document.getElementById('object-label').checked
     });
 
     M.Modal.getInstance(document.getElementById('object-modal')).close();
@@ -204,7 +209,7 @@ function updateCategory(category) {
     document.getElementById('object-category-' + category.id).text = category.title;
     M.FormSelect.init(document.getElementById("object-category"));
     // Update the map, adding an empty layer
-    updateLayer(category.id);
+    updateObjectLayer(category.id);
 }
 
 function removeCategory(id) {
