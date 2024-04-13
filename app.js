@@ -12,7 +12,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
 // TODO: include map zoom and position in settings
-// TODO: import of settings object from JSON
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -99,6 +98,7 @@ function editObject(object) {
 }
 
 function removeObject(id) {
+    const object = settings.objects.find(o => o.id == parseInt(id));
     // Remove from settings store
     settings.objects = settings.objects.filter(o => o.id != id);
     // Remove from objects table
