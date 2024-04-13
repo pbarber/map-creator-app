@@ -11,7 +11,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 // TODO: allow overlay of name on map
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
-// TODO: include map zoom and position in settings
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -302,6 +301,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     downloadGeoJSONBtn.addEventListener('click', function() {
+        settings.zoom = map.getZoom();
+        settings.centre = map.getCenter();
         const json = JSON.stringify(settings, null, 2); // Convert the object to JSON with indentation for readability
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -331,6 +332,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     upload.categories.map(o => addCategory(o));
                     // Add the new objects
                     upload.objects.map(o => addObject(o));
+                    // Apply zoom and centre (if available)
+                    if (upload.hasOwnProperty('zoom') && upload.hasOwnProperty('centre')) {
+                        map.setView(upload.centre, upload.zoom);
+                    }
                 } else {
                     M.toast({html: 'Cannot parse uploaded file'})
                 }
