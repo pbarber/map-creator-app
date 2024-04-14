@@ -100,6 +100,11 @@ function addObject(object) {
     }
 }
 
+function updateObjectTableRow(object, category) {
+    const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
+    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>`;
+}
+
 function editObject(object) {
     // Update the setting storage
     const index = settings.objects.findIndex(o => o.id === parseInt(object.id));
@@ -109,8 +114,7 @@ function editObject(object) {
     settings.objects[index].label = object.label;
     const category = settings.categories.find(o => (o.id === object.category));
     // Update the object table row
-    const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
-    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>`;
+    updateObjectTableRow(object, category);
     // Update the map if category has changed
     if (original.category !== object.category) {
         updateObjectLayer(object.category);
@@ -259,8 +263,10 @@ function updateCategory(category) {
     // Update the dropdown for object category
     document.getElementById('object-category-' + category.id).text = category.title;
     M.FormSelect.init(document.getElementById("object-category"));
-    // Update the map, adding an empty layer
+    // Update the map
     updateObjectLayer(category.id);
+    // Update the affected object table rows to reflect the new colours
+    settings.objects.filter(o => (o.category === category.id)).map(object => updateObjectTableRow(object, category))
 }
 
 function removeCategory(id) {
