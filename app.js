@@ -58,7 +58,7 @@ function updateLabelLayer() {
     var labels = [];
     settings.objects.filter(o => o.label).map(o => {
         var marker = new L.marker([o.lat, o.lon], { opacity: 0 });
-        marker.bindTooltip(o.title, {permanent: true, className: "map-label", offset: [0, 0] });
+        marker.bindTooltip(o.title, {permanent: true, className: "map-label", offset: [-16  , 27], direction: 'center' });
         labels.push(marker);
     });
     layers['label-layer'] = L.layerGroup(labels).addTo(map);
