@@ -193,7 +193,7 @@ function layerStyle(category) {
         color: category.colour,
         weight: category.weight,
         opacity: 1,
-        fillOpacity: 0.8
+        fillOpacity: 0.7
     };
 }
 

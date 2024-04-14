@@ -13,7 +13,7 @@
       }
       .bottom-sheet {
         min-height: auto;
-        max-height: 80vh;
+        max-height: 90vh !important;
         padding: 24px;
         overflow-y: auto;
       }
@@ -25,7 +25,7 @@
         height: 18px;
         float: left;
         margin: 0 8px 0 0;
-/*        opacity: 0.7; */
+        opacity: 0.7;
       }
       .leaflet-tooltip {
         background-color: transparent;
@@ -41,27 +41,36 @@
       .leaflet-tooltip-right:before {
         border-right-color: transparent;
       }
+      .modal-trigger {
+        position: absolute;
+        top: 16px;
+        right: 70px;
+        z-index: 400;
+      }
     </style>
   </head>
   <body>
-    <div class="row">
-        <div id="map" class="col s10"></div>
-        <div id="side-panel" class="col s2 center-align">
-            <a class="waves-effect waves-light btn modal-trigger" href="#bottom-sheet">Settings</a>
-            <table class="highlight col">
-                <tbody id="objects-table"></tbody>
-            </table>
-        </div>
-    </div>
+    <div id="map"></div>
+    <a class="waves-effect waves-light btn modal-trigger" href="#bottom-sheet">Settings</a>
     <div id="bottom-sheet" class="modal bottom-sheet">
         <div class="modal-content">
             <div class="row">
                 <div class="col s9"><h4>Categories</h4></div>
                 <div class="col s3"><a class="waves-effect waves-light btn add-category" href="#add-category">Add category</a></div>
             </div>
-            <table class="highlight col">
-                <tbody id="categories-table"></tbody>
-            </table>
+            <div class="row">
+                <table class="highlight col">
+                    <tbody id="categories-table"></tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col s9"><h4>Locations</h4></div>
+            </div>
+            <div class="row">
+                <table class="highlight col">
+                    <tbody id="objects-table"></tbody>
+                </table>
+            </div>
             <div class="row">
                 <div class="col s9"><h4>Settings</h4></div>
             </div>
@@ -74,17 +83,19 @@
                 </label>
             </div>
             <div class="row">
-                <a class="waves-effect waves-light btn" id="download-geojson">Download Settings</a>
-            </div>
-            <div class="row">
-                <div class="file-field input-field">
-                    <div class="btn">
-                        <span>Upload Settings</span>
-                        <input name="json" type="file" id="upload-geojson">
+                <div class="col s9">
+                    <div class="file-field input-field">
+                        <div class="waves-effect waves-light btn">
+                            <span>Upload Settings</span>
+                            <input name="json" type="file" id="upload-geojson">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text">
+                        </div>
                     </div>
-                    <div class="file-path-wrapper">
-                        <input class="file-path validate" type="text">
-                    </div>
+                </div>
+                <div class="col s3">
+                    <a class="waves-effect waves-light btn" id="download-geojson">Download Settings</a>
                 </div>
             </div>
         </div>
