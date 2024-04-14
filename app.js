@@ -424,7 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     map.addEventListener('contextmenu', function(event) {
         search.options.geocoder.reverse(event.latlng, map.options.crs.scale(map.getZoom()), function(results) {
-            console.log(results);
             if (results[0]) {
                 if (settings.objects.filter(o => (o.id === parseInt(results[0].properties.place_id))).length === 0) {
                     addObject({
