@@ -1,17 +1,19 @@
 // Initialize the map
 const map = L.map('map').setView([51.505, -0.09], 13);
+map.zoomControl.setPosition('topright');
 
 // Add base layers
-const blankLayer = L.tileLayer('');
+const blankLayer = L.tileLayer('', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+});
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-  maxZoom: 19,
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+    maxZoom: 19,
 });
 
 const defaultColour = '#13a300';
 
-// TODO: allow positioning of name on map
-// TODO: allow angle of name on map
+// TODO: search by Nominatim ID
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -131,6 +133,19 @@ function removeObject(id) {
         updateLabelLayer();
     }
 }
+
+var info = L.control({position: 'topleft'});
+
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this._div.innerHTML = (
+        '<b>Click <i class="fa fa-search"></i> below to search for a location</b><br />The map will colour areas by their category, click Settings to change area formatting<br />' +
+        '<a href="https://github.com/pbarber/map-creator-app/blob/main/README.md">More information</a>'
+        );
+    return this._div;
+};
+
+info.addTo(map);
 
 // Add event handlers for controls
 L.Control.geocoder({
