@@ -8,7 +8,6 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
   maxZoom: 19,
 });
 
-// TODO: allow overlay of name on map
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
 // TODO: add streams and roads
@@ -56,6 +55,17 @@ function updateObjectLayer(category) {
     layers[category] = L.geoJson(layer, {style: layerStyle(settings.categories.find(o => o.id === category))}).addTo(map)
 }
 
+function updateLabelLayer() {
+    map.removeLayer(layers['label-layer']);
+    var labels = [];
+    settings.objects.filter(o => o.label).map(o => {
+        var marker = new L.marker([o.lat, o.lon], { opacity: 0 });
+        marker.bindTooltip(o.title, {permanent: true, className: "map-label", offset: [0, 0] });
+        labels.push(marker);
+    });
+    layers['label-layer'] = L.layerGroup(labels).addTo(map);
+}
+
 function addObject(object) {
     // Add the object to the settings storage
     settings.objects.push(object);
@@ -77,14 +87,22 @@ function addObject(object) {
     `;
     row.setAttribute('id', 'object-row-' + object.id);
     objectsTable.appendChild(row);
+    // If this is the first object, then centre the map on it
+    if (settings.objects.length === 1) {
+        map.setView([object.lat, object.lon]);
+    }
     // Recreate the relevant map layer
     updateObjectLayer(object.category);
+    // Add label to map
+    if (object.label) {
+        updateLabelLayer();
+    }
 }
 
 function editObject(object) {
     // Update the setting storage
     const index = settings.objects.findIndex(o => o.id === parseInt(object.id));
-    const categoryStart = settings.objects[index].category;
+    const original = structuredClone(settings.objects[index]);
     settings.objects[index].title = object.title;
     settings.objects[index].category = object.category;
     settings.objects[index].label = object.label;
@@ -92,9 +110,13 @@ function editObject(object) {
     const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
     cells[0].innerHTML = `<td>${object.title}</td>`;
     // Update the map if category has changed
-    if (categoryStart !== object.category) {
+    if (original.category !== object.category) {
         updateObjectLayer(object.category);
-        updateObjectLayer(categoryStart);
+        updateObjectLayer(original.category);
+    }
+    // Update map labels if changed
+    if ((original.label !== object.label) || (original.title != object.title)) {
+        updateLabelLayer();
     }
 }
 
@@ -106,6 +128,10 @@ function removeObject(id) {
     document.getElementById('object-row-' + id).remove();
     // Recreate the relevant map layer
     updateObjectLayer(object.category);
+    // Remove the label
+    if (object.label) {
+        updateLabelLayer();
+    }
 }
 
 // Add event handlers for controls
@@ -293,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var uploadGeoJSONInput = document.getElementById('upload-geojson');
     M.Modal.init(document.getElementById('object-modal'));
     M.updateTextFields();
+    layers['label-layer'] = L.layerGroup([]).addTo(map)
 
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
@@ -341,6 +368,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (upload.hasOwnProperty('zoom') && upload.hasOwnProperty('centre')) {
                         map.setView(upload.centre, upload.zoom);
                     }
+                    // Add labels to map
+                    updateLabelLayer();
                 } else {
                     M.toast({html: 'Cannot parse uploaded file'})
                 }
