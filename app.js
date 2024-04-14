@@ -344,10 +344,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
     var uploadGeoJSONInput = document.getElementById('upload-geojson');
     var toggleGridBtn = document.getElementById('toggle-grid');
+    var selectLayers = document.getElementsByClassName('leaflet-control-layers-selector');
 
     M.Modal.init(document.getElementById('object-modal'));
     M.updateTextFields();
+    // Add an empty layer for labels to the map
     layers['label-layer'] = L.layerGroup([]).addTo(map)
+    // Make sure that the Blank layer is selected
+    selectLayers[0].click()
 
     bottomSheetTrigger.addEventListener('click', function(event) {
         event.preventDefault();
