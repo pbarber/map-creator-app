@@ -8,6 +8,8 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
   maxZoom: 19,
 });
 
+const defaultColour = '#13a300';
+
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
 // TODO: add streams and roads
@@ -141,15 +143,19 @@ L.Control.geocoder({
     geocoder: new L.Control.Geocoder.Nominatim({geocodingQueryParams: {polygon_geojson: 1}})
   })
   .on('markgeocode', function(e) {
-    addObject({
-        title: e.geocode.properties.name,
-        id: e.geocode.properties.place_id,
-        geojson: e.geocode.properties.geojson,
-        lat: e.geocode.properties.lat,
-        lon: e.geocode.properties.lon,
-        category: settings.categories[0].id,
-        label: true
-    });
+    if (settings.objects.filter(o => (o.id === parseInt(e.geocode.properties.place_id))).length === 0) {
+        addObject({
+            title: e.geocode.properties.name,
+            id: e.geocode.properties.place_id,
+            geojson: e.geocode.properties.geojson,
+            lat: e.geocode.properties.lat,
+            lon: e.geocode.properties.lon,
+            category: settings.categories[0].id,
+            label: true
+        });
+    } else {
+        M.toast({html: 'Location is already on map, it will not be added'})
+    }
   })
   .addTo(map);
 
@@ -187,8 +193,9 @@ document.getElementById('object-modal-form').addEventListener('submit', function
 
 function layerStyle(category) {
     return {
-        fillColor: category.colour,
-        weight: 0,
+        fillColor: category.fill,
+        color: category.colour,
+        weight: category.weight,
         opacity: 1,
         fillOpacity: 0.8
     };
@@ -204,7 +211,7 @@ function addCategory(category) {
     // Add row to the category table
     const row = document.createElement('tr');
     row.innerHTML = `
-    <td><i class="colour-block" style="background: ${category.colour}"></i>${category.title}</td>
+    <td><i class="colour-block" style="background: ${category.fill}"></i>${category.title}</td>
     <td>
         <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
         <span class="material-icons">delete</span>
@@ -227,10 +234,12 @@ function updateCategory(category) {
     // Update to existing record - store changes to settings
     const index = settings.categories.findIndex(o => o.id === parseInt(category.id));
     settings.categories[index].title = category.title;
+    settings.categories[index].fill = category.fill;
     settings.categories[index].colour = category.colour;
+    settings.categories[index].weight = category.weight;
     // Update the category table
     const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
-    cells[0].innerHTML = `<i class="colour-block" style="background: ${category.colour}"></i>${category.title}`;
+    cells[0].innerHTML = `<i class="colour-block" style="background: ${category.fill}"></i>${category.title}`;
     // Update the dropdown for object category
     document.getElementById('object-category-' + category.id).text = category.title;
     M.FormSelect.init(document.getElementById("object-category"));
@@ -264,12 +273,16 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-modal-title').textContent = "Add a new category";
         document.getElementById('category-id').value = '';
         document.getElementById('category-title').value = '';
-        document.getElementById('category-colour').value = '#ff0000';
+        document.getElementById('category-fill').value = defaultColour;
+        document.getElementById('category-colour').value = defaultColour;
+        document.getElementById('category-weight').value = 2;
     } else {
         document.getElementById('category-modal-title').textContent = "Edit a category";
         document.getElementById('category-id').value = category.id;
         document.getElementById('category-title').value = category.title;
+        document.getElementById('category-fill').value = category.fill;
         document.getElementById('category-colour').value = category.colour;
+        document.getElementById('category-weight').value = category.weight;
     }
     M.updateTextFields();
 }
@@ -281,7 +294,9 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
     const id = document.getElementById('category-id').value;
     var category = {
         title: document.getElementById('category-title').value,
-        colour: document.getElementById('category-colour').value
+        fill: document.getElementById('category-fill').value,
+        colour: document.getElementById('category-colour').value,
+        weight: document.getElementById('category-weight').value
     };
     // Handle add or edit
     if (id !== "") {
@@ -379,5 +394,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add a default category so that searches have something to attach to
-    addCategory({title: 'Default', id: 0, colour: '#ff0000'});
+    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2});
 });
