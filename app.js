@@ -145,13 +145,14 @@ info.onAdd = function (map) {
     return this._div;
 };
 
-info.addTo(map);
-
 // Add event handlers for controls
-L.Control.geocoder({
+const search = L.Control.geocoder({
     defaultMarkGeocode: false, // Do not recentre map to serached location
     position: 'topleft',
-    geocoder: new L.Control.Geocoder.Nominatim({geocodingQueryParams: {polygon_geojson: 1}})
+    geocoder: new L.Control.Geocoder.Nominatim({
+        geocodingQueryParams: {polygon_geojson: 1},
+        reverseQueryParams: {polygon_geojson: 1}
+    })
   })
   .on('markgeocode', function(e) {
     if (settings.objects.filter(o => (o.id === parseInt(e.geocode.properties.place_id))).length === 0) {
@@ -167,8 +168,10 @@ L.Control.geocoder({
     } else {
         M.toast({html: 'Location is already on map, it will not be added'})
     }
-  })
-  .addTo(map);
+});
+
+info.addTo(map);
+search.addTo(map);
 
 objectsTable.addEventListener('click', (event) => {
     const id = parseInt(event.target.dataset.id);
@@ -409,6 +412,30 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             reader.readAsText(fileblob);
         }
+    });
+
+    map.addEventListener('contextmenu', function(event) {
+        search.options.geocoder.reverse(event.latlng, map.options.crs.scale(map.getZoom()), function(results) {
+            console.log(results);
+            if (results[0]) {
+                if (settings.objects.filter(o => (o.id === parseInt(results[0].properties.place_id))).length === 0) {
+                    addObject({
+                        title: results[0].properties.name,
+                        id: results[0].properties.place_id,
+                        geojson: results[0].properties.geojson,
+                        lat: results[0].properties.lat,
+                        lon: results[0].properties.lon,
+                        category: settings.categories[0].id,
+                        label: true
+                    });
+                } else {
+                    M.toast({html: 'Location is already on map, it will not be added'})
+                }
+            }
+            else {
+                M.toast({html: 'No location found'})
+            }
+        }, {polygon_geojson: 1});
     });
 
     // Add a default category so that searches have something to attach to
