@@ -12,7 +12,6 @@ const defaultColour = '#13a300';
 
 // TODO: allow positioning of name on map
 // TODO: allow angle of name on map
-// TODO: add streams and roads
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -21,9 +20,6 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// Add event listeners for controls
-const toggleGridBtn = document.getElementById('toggle-grid');
-const downloadImageBtn = document.getElementById('download-image');
 const objectsTable = document.getElementById('objects-table');
 const categoriesTable = document.getElementById('categories-table');
 
@@ -332,6 +328,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var categoryModalTrigger = document.querySelector('.add-category');
     var categoryModalInstance = M.Modal.init(document.getElementById('category-modal'));
     var uploadGeoJSONInput = document.getElementById('upload-geojson');
+    var toggleGridBtn = document.getElementById('toggle-grid');
+
     M.Modal.init(document.getElementById('object-modal'));
     M.updateTextFields();
     layers['label-layer'] = L.layerGroup([]).addTo(map)
@@ -361,6 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     uploadGeoJSONInput.addEventListener('change', function(event) {
+        event.preventDefault();
         const fileblob = this.files[0];
         if (fileblob) {
             const reader = new FileReader();
