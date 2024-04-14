@@ -69,10 +69,11 @@ function updateLabelLayer() {
 function addObject(object) {
     // Add the object to the settings storage
     settings.objects.push(object);
+    const category = settings.categories.find(o => (o.id === object.category));
     // Add a new row to the objects table
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${object.title}</td>
+      <td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>
       <td>
         <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="remove">
           <span class="material-icons">delete</span>
@@ -106,9 +107,10 @@ function editObject(object) {
     settings.objects[index].title = object.title;
     settings.objects[index].category = object.category;
     settings.objects[index].label = object.label;
+    const category = settings.categories.find(o => (o.id === object.category));
     // Update the object table row
     const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
-    cells[0].innerHTML = `<td>${object.title}</td>`;
+    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>`;
     // Update the map if category has changed
     if (original.category !== object.category) {
         updateObjectLayer(object.category);
