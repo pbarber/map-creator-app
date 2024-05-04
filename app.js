@@ -156,7 +156,7 @@ const search = L.Control.geocoder({
     defaultMarkGeocode: false, // Do not recentre map to serached location
     position: 'topleft',
     geocoder: new L.Control.Geocoder.Nominatim({
-        geocodingQueryParams: {polygon_geojson: 1},
+        geocodingQueryParams: {polygon_geojson: 1, limit: 15},
         reverseQueryParams: {polygon_geojson: 1}
     })
   })
