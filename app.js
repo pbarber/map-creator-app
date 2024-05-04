@@ -13,7 +13,7 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 
 const defaultColour = '#13a300';
 
-// TODO: search by Nominatim ID
+// TODO: add tetrad grid
 
 // Create layer control and add to the map
 const baseLayers = {
@@ -422,27 +422,76 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    map.addEventListener('contextmenu', function(event) {
-        search.options.geocoder.reverse(event.latlng, map.options.crs.scale(map.getZoom()), function(results) {
-            if (results[0]) {
-                if (settings.objects.filter(o => (o.id === parseInt(results[0].properties.place_id))).length === 0) {
+    map.addEventListener('contextmenu', async function(event) {
+        var result = await fetch(
+            "https://overpass-api.de/api/interpreter",
+            {
+                method: "POST",
+                body: "data="+ `
+                    [timeout:10]
+                    [out:json];
+                    is_in(${event.latlng.lat},${event.latlng.lng})->.a;
+                    way(pivot.a);
+                    out body;
+                    >;
+                    out skel qt;
+                `
+            },
+        ).then(
+            (data)=>data.json()
+        );
+        var added = false;
+        if (result.elements.length !== 0) {
+            // Get first way
+            var way = result.elements.find(o => (o.type==='way'));
+            var boundary = way.nodes.map(function(a) {
+                const loc = result.elements.find(o => (a===o.id));
+                return([loc.lon, loc.lat]);
+            });
+            if (way.nodes[0] === way.nodes.at(-1)) {
+                if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
                     addObject({
-                        title: results[0].properties.name,
-                        id: results[0].properties.place_id,
-                        geojson: results[0].properties.geojson,
-                        lat: results[0].properties.lat,
-                        lon: results[0].properties.lon,
+                        title: way.id.toString(),
+                        id: way.id,
+                        geojson: {
+                            type: "Polygon",
+                            coordinates: [boundary]
+                        },
+                        lat: event.latlng.lat,
+                        lon: event.latlng.lng,
                         category: settings.categories[0].id,
                         label: true
                     });
+                    added = true;
                 } else {
                     M.toast({html: 'Location is already on map, it will not be added'})
                 }
+            } else {
+                console.log('Line???');
             }
-            else {
-                M.toast({html: 'No location found'})
-            }
-        }, {polygon_geojson: 1});
+        }
+        if (!added) {
+            search.options.geocoder.reverse(event.latlng, map.options.crs.scale(map.getZoom()), function(results) {
+                if (results[0]) {
+                    if (settings.objects.filter(o => (o.id === parseInt(results[0].properties.place_id))).length === 0) {
+                        addObject({
+                            title: results[0].properties.name,
+                            id: results[0].properties.place_id,
+                            geojson: results[0].properties.geojson,
+                            lat: results[0].properties.lat,
+                            lon: results[0].properties.lon,
+                            category: settings.categories[0].id,
+                            label: true
+                        });
+                    } else {
+                        M.toast({html: 'Location is already on map, it will not be added'})
+                    }
+                }
+                else {
+                    M.toast({html: 'No location found'})
+                }
+            }, {polygon_geojson: 1});
+        }
     });
 
     // Add a default category so that searches have something to attach to
