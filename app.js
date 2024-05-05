@@ -10,6 +10,54 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     maxZoom: 19,
 });
+const gridLayer = L.gridLayer({
+    attribution: 'Grid Layer',
+    tileSize: 256
+});
+
+proj4.defs("EPSG:27700","+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs +type=crs");
+
+gridLayer.createTile = function(coords) {
+    console.log(coords);
+    var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+    var size = this.getTileSize();
+    tile.width = size.x;
+    tile.height = size.y;
+    var ctx = tile.getContext('2d');
+  
+    // Get the tile's northwest and southeast coordinates
+    var nwPoint = coords.scaleBy(size);
+    var sePoint = nwPoint.add(size);
+    var nw = this._map.unproject(nwPoint, coords.z);
+    var se = this._map.unproject(sePoint, coords.z);
+
+    console.log('NW: ' + nw + ' > ' + proj4('EPSG:27700', [nw.lng, nw.lat]));
+    console.log('SE: ' + se + ' > ' + proj4('EPSG:27700', [se.lng, se.lat]));
+
+    // Draw horizontal grid lines
+    ctx.beginPath();
+    for (var y = 0; y <= size.y; y += 50) {
+        var lat = nw.lat + (se.lat - nw.lat) * (y / size.y);
+        ctx.moveTo(0, y);
+        ctx.lineTo(size.x, y);
+        ctx.fillText(lat.toFixed(5), 5, y + 15);
+    }
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.stroke();
+
+    // Draw vertical grid lines
+    ctx.beginPath();
+    for (var x = 0; x <= size.x; x += 50) {
+        var lng = nw.lng + (se.lng - nw.lng) * (x / size.x);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, size.y);
+        ctx.fillText(lng.toFixed(5), x + 5, 15);
+    }
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.stroke();
+
+    return tile;
+};
 
 const defaultColour = '#13a300';
 
@@ -19,6 +67,7 @@ const defaultColour = '#13a300';
 const baseLayers = {
   'Blank': blankLayer,
   'OpenStreetMap': osmLayer,
+  'Grid': gridLayer
 };
 L.control.layers(baseLayers).addTo(map);
 
