@@ -35,44 +35,45 @@ gridLayer.createTile = function(coords) {
     // Get the tile's northwest and southeast coordinates
     var nwPoint = coords.scaleBy(size);
     var sePoint = nwPoint.add(size);
-    var nw = this._map.unproject(nwPoint, coords.z);
-    var se = this._map.unproject(sePoint, coords.z);
+    var nw = this._map.unproject(nwPoint, coords.z); // get lat/long of north west point
+    var se = this._map.unproject(sePoint, coords.z); // get lat/long of south east point
+    var tileBounds = L.rectangle([[se.lng, nw.lat], [nw.lng, se.lat]]);
 
-    var nwosni = proj4('EPSG:27700', [nw.lng, nw.lat]);
-    var seosni = proj4('EPSG:27700', [se.lng, se.lat]);
+    var nwosni = proj4('EPSG:27700', [nw.lng, nw.lat]); // get OSNI easting/northing of north west point
+    var seosni = proj4('EPSG:27700', [se.lng, se.lat]); // get OSNI easting/northing of north west point
 
-    var furthestN = Math.floor(nwosni[1]/1000)*1000;
-    var furthestS = Math.ceil(seosni[1]/1000)*1000;
-    var furthestW = Math.floor(nwosni[0]/1000)*1000;
-    var furthestE = Math.ceil(seosni[0]/1000)*1000;
+    var furthestN = Math.floor(nwosni[1]/1000)*1000; // get furthest north 1km northing in OSNI which is south of the north edge of the tile
+    var furthestS = Math.ceil(seosni[1]/1000)*1000;  // get furthest south 1km northing in OSNI which is north of the south edge of the tile
+    var furthestW = Math.ceil(nwosni[0]/1000)*1000; // get furthest west 1km easting in OSNI which is east of the west edge of the tile
+    var furthestE = Math.floor(seosni[0]/1000)*1000;  // get furthest east 1km easting in OSNI which is west of the east edge of the tile
+    // West/East lines - at latitudes divisible by 1km
     ctx.beginPath();
     for (var latosni = furthestS; latosni <= furthestN; latosni += 1000) {
-        var west = proj4('EPSG:27700', 'EPSG:4326', [nwosni[0], latosni]);
-        var east = proj4('EPSG:27700', 'EPSG:4326', [seosni[0], latosni]);
-        var westy = size.y * ((west[1] - se.lat) / (nw.lat - se.lat));
-        var easty = size.y * ((east[1] - se.lat) / (nw.lat - se.lat));
-        ctx.moveTo(0, westy);
-        ctx.lineTo(size.x, easty);
-//        for (var x = furthestW; x <= furthestE; x += 1000) {
-//            console.log([x, y]);
-//            ctx.fillText(lat.toFixed(5), 5, y + 15);
-//        }
+        console.log(latosni);
+        var crossline = L.polyline([proj4('EPSG:27700', 'EPSG:4326', [furthestW-1000, latosni]), proj4('EPSG:27700', 'EPSG:4326', [furthestE+1000, latosni])]);
+        var edgeIntersect = turf.lineIntersect(crossline.toGeoJSON(), tileBounds.toGeoJSON());
+        if (edgeIntersect.features.length > 1) {
+            ctx.moveTo(size.x * ((edgeIntersect.features[0].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[0].geometry.coordinates[0]) / (nw.lat - se.lat)));
+            ctx.lineTo(size.x * ((edgeIntersect.features[1].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[1].geometry.coordinates[0]) / (nw.lat - se.lat)));
+            for (var lngosni = furthestW; lngosni <= furthestE; lngosni += 1000) {
+                var north = proj4('EPSG:27700', 'EPSG:4326', [lngosni, nwosni[1]]);
+                var northx = size.x * ((north[0] - se.lng) / (nw.lng - se.lng));
+    //            ctx.fillText(lngosni + ', ' + latosni, northx + 15, easty + 15);
+            }
+        }
     }
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.stroke();
 
+    // North/South lines - at longitudes divisible by 1km
     ctx.beginPath();
     for (var lngosni = furthestW; lngosni <= furthestE; lngosni += 1000) {
-        var south = proj4('EPSG:27700', 'EPSG:4326', [lngosni, seosni[1]]);
-        var north = proj4('EPSG:27700', 'EPSG:4326', [lngosni, nwosni[1]]);
-        var southx = size.x * ((south[0] - se.lng) / (nw.lng - se.lng));
-        var northx = size.x * ((north[0] - se.lng) / (nw.lng - se.lng));
-        ctx.moveTo(northx, 0);
-        ctx.lineTo(southx, size.y);
-//        for (var x = furthestW; x <= furthestE; x += 1000) {
-//            console.log([x, y]);
-//            ctx.fillText(lat.toFixed(5), 5, y + 15);
-//        }
+        var crossline = L.polyline([proj4('EPSG:27700', 'EPSG:4326', [lngosni, furthestS-1000]), proj4('EPSG:27700', 'EPSG:4326', [lngosni, furthestN+1000])]);
+        var edgeIntersect = turf.lineIntersect(crossline.toGeoJSON(), tileBounds.toGeoJSON());
+        if (edgeIntersect.features.length > 1) {
+            ctx.moveTo(size.x * ((edgeIntersect.features[0].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[0].geometry.coordinates[0]) / (nw.lat - se.lat)));
+            ctx.lineTo(size.x * ((edgeIntersect.features[1].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[1].geometry.coordinates[0]) / (nw.lat - se.lat)));
+        }
     }
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.stroke();
