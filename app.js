@@ -15,10 +15,17 @@ const gridLayer = L.gridLayer({
     tileSize: 256
 });
 
-proj4.defs("EPSG:27700","+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs +type=crs");
+var request = new XMLHttpRequest();
+request.onload = function() {
+    var arrayBuffer = request.response;
+    proj4.nadgrid('OSTN15_NTv2_OSGBtoETRS', arrayBuffer);
+    proj4.defs('EPSG:27700', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs +nadgrids=OSTN15_NTv2_OSGBtoETRS');
+};
+request.open('GET', 'https://raw.githubusercontent.com/OrdnanceSurvey/os-transform/main/OSTN15_NTv2_OSGBtoETRS.gsb');
+request.responseType = 'arraybuffer';
+request.send();
 
 gridLayer.createTile = function(coords) {
-    console.log(coords);
     var tile = L.DomUtil.create('canvas', 'leaflet-tile');
     var size = this.getTileSize();
     tile.width = size.x;
@@ -31,27 +38,41 @@ gridLayer.createTile = function(coords) {
     var nw = this._map.unproject(nwPoint, coords.z);
     var se = this._map.unproject(sePoint, coords.z);
 
-    console.log('NW: ' + nw + ' > ' + proj4('EPSG:27700', [nw.lng, nw.lat]));
-    console.log('SE: ' + se + ' > ' + proj4('EPSG:27700', [se.lng, se.lat]));
+    var nwosni = proj4('EPSG:27700', [nw.lng, nw.lat]);
+    var seosni = proj4('EPSG:27700', [se.lng, se.lat]);
 
-    // Draw horizontal grid lines
+    var furthestN = Math.floor(nwosni[1]/1000)*1000;
+    var furthestS = Math.ceil(seosni[1]/1000)*1000;
+    var furthestW = Math.floor(nwosni[0]/1000)*1000;
+    var furthestE = Math.ceil(seosni[0]/1000)*1000;
     ctx.beginPath();
-    for (var y = 0; y <= size.y; y += 50) {
-        var lat = nw.lat + (se.lat - nw.lat) * (y / size.y);
-        ctx.moveTo(0, y);
-        ctx.lineTo(size.x, y);
-        ctx.fillText(lat.toFixed(5), 5, y + 15);
+    for (var latosni = furthestS; latosni <= furthestN; latosni += 1000) {
+        var west = proj4('EPSG:27700', 'EPSG:4326', [nwosni[0], latosni]);
+        var east = proj4('EPSG:27700', 'EPSG:4326', [seosni[0], latosni]);
+        var westy = size.y * ((west[1] - se.lat) / (nw.lat - se.lat));
+        var easty = size.y * ((east[1] - se.lat) / (nw.lat - se.lat));
+        ctx.moveTo(0, westy);
+        ctx.lineTo(size.x, easty);
+//        for (var x = furthestW; x <= furthestE; x += 1000) {
+//            console.log([x, y]);
+//            ctx.fillText(lat.toFixed(5), 5, y + 15);
+//        }
     }
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.stroke();
 
-    // Draw vertical grid lines
     ctx.beginPath();
-    for (var x = 0; x <= size.x; x += 50) {
-        var lng = nw.lng + (se.lng - nw.lng) * (x / size.x);
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, size.y);
-        ctx.fillText(lng.toFixed(5), x + 5, 15);
+    for (var lngosni = furthestW; lngosni <= furthestE; lngosni += 1000) {
+        var south = proj4('EPSG:27700', 'EPSG:4326', [lngosni, seosni[1]]);
+        var north = proj4('EPSG:27700', 'EPSG:4326', [lngosni, nwosni[1]]);
+        var southx = size.x * ((south[0] - se.lng) / (nw.lng - se.lng));
+        var northx = size.x * ((north[0] - se.lng) / (nw.lng - se.lng));
+        ctx.moveTo(northx, 0);
+        ctx.lineTo(southx, size.y);
+//        for (var x = furthestW; x <= furthestE; x += 1000) {
+//            console.log([x, y]);
+//            ctx.fillText(lat.toFixed(5), 5, y + 15);
+//        }
     }
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.stroke();
