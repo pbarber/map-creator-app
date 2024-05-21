@@ -15,6 +15,87 @@ const gridLayer = L.gridLayer({
     tileSize: 256
 });
 
+// Lookup of SW corner of the OS grid squares
+const os_grid_letters = {
+    'A': [0, 4],'B': [1, 4],'C': [2, 4],'D': [3, 4],'E': [4, 4],
+    'F': [0, 3],'G': [1, 3],'H': [2, 3],'J': [3, 3],'K': [4, 3],
+    'L': [0, 2],'M': [1, 2],'N': [2, 2],'O': [3, 2],'P': [4, 2],
+    'Q': [0, 1],'R': [1, 1],'S': [2, 1],'T': [3, 1],'U': [4, 1],
+    'V': [0, 0],'W': [1, 0],'X': [2, 0],'Y': [3, 0],'Z': [4, 0]
+};
+
+// Lookup of SW corner of the OS tetrad squares
+const os_tetrad_letters = {
+    'E': [0, 4],'J': [1, 4],'P': [2, 4],'U': [3, 4],'Z': [4, 4],
+    'D': [0, 3],'I': [1, 3],'N': [2, 3],'T': [3, 3],'Y': [4, 3],
+    'C': [0, 2],'H': [1, 2],'M': [2, 2],'S': [3, 2],'X': [4, 2],
+    'B': [0, 1],'G': [1, 1],'L': [2, 1],'R': [3, 1],'W': [4, 1],
+    'A': [0, 0],'F': [1, 0],'K': [2, 0],'Q': [3, 0],'V': [4, 0]
+};
+
+// Lookup of easting, northing of the SW corner of the GB OS 500km squares
+const os_500k_coords = Object.fromEntries(
+    ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
+);
+
+// Lookup of easting, northing of the SW corner of the GB OS 100km squares
+const os_100k_coords = Object.fromEntries(
+    [
+                    'HP',
+               'HT','HU',
+     'HW','HX','HY','HZ',
+'NA','NB','NC','ND',
+'NF','NG','NH','NJ','NK',
+'NL','NM','NN','NO',
+     'NR','NS','NT','NU',
+     'NW','NX','NY','NZ',
+          'SC','SD','SE','TA',
+          'SH','SJ','SK','TF','TG',
+     'SM','SN','SO','SP','TL','TM',
+     'SR','SS','ST','SU','TQ','TR',
+'SV','SW','SX','SY','SZ','TV'
+    ].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000) + (os_grid_letters[o[1]][0] * 100000), ((os_grid_letters[o[0]][1]-1) * 500000) + (os_grid_letters[o[1]][1] * 100000)]])
+);
+
+// Lookup of easting, northing of the SW corner of the GB OS 10km squares
+const os_10k_coords = Object.fromEntries(
+    Object.entries(os_100k_coords).flatMap(o =>
+        [...Array(10).keys()].flatMap(x => 
+            [...Array(10).keys()].map(y => 
+                [o[0] + x + y, [o[1][0]+(x*10000), o[1][1]+(y*10000)]]
+            )
+        )
+    )
+);
+
+// Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
+const os_2k_coords = Object.fromEntries(
+    Object.entries(os_10k_coords).flatMap(o =>
+        Object.entries(os_tetrad_letters).map(t =>
+            [o[0]+t[0], [o[1][0]+(2000*t[1][0]),o[1][1]+(2000*t[1][1])]]
+        )
+    )
+);
+
+// Lookup of easting, northing of the SW corner of the GB OS 1km squares
+const os_1k_coords = Object.fromEntries(
+    Object.entries(os_10k_coords).flatMap(o =>
+        [...Array(10).keys()].flatMap(x => 
+            [...Array(10).keys()].map(y => 
+                [o[0] + x + y, [o[1][0]+(x*1000), o[1][1]+(y*1000)]]
+            )
+        )
+    )
+);
+
+const os_grids = {
+    '500k': os_500k_coords,
+    '100k': os_100k_coords,
+    '10k': os_10k_coords,
+    '2k': os_2k_coords,
+    '1k': os_1k_coords
+};
+
 var request = new XMLHttpRequest();
 request.onload = function() {
     var arrayBuffer = request.response;
@@ -31,7 +112,7 @@ gridLayer.createTile = function(coords) {
     tile.width = size.x;
     tile.height = size.y;
     var ctx = tile.getContext('2d');
-  
+
     // Get the tile's northwest and southeast coordinates
     var nwPoint = coords.scaleBy(size);
     var sePoint = nwPoint.add(size);
@@ -49,7 +130,6 @@ gridLayer.createTile = function(coords) {
     // West/East lines - at latitudes divisible by 1km
     ctx.beginPath();
     for (var latosni = furthestS; latosni <= furthestN; latosni += 1000) {
-        console.log(latosni);
         var crossline = L.polyline([proj4('EPSG:27700', 'EPSG:4326', [furthestW-1000, latosni]), proj4('EPSG:27700', 'EPSG:4326', [furthestE+1000, latosni])]);
         var edgeIntersect = turf.lineIntersect(crossline.toGeoJSON(), tileBounds.toGeoJSON());
         if (edgeIntersect.features.length > 1) {
