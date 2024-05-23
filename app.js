@@ -33,13 +33,35 @@ const os_tetrad_letters = {
     'A': [0, 0],'F': [1, 0],'K': [2, 0],'Q': [3, 0],'V': [4, 0]
 };
 
-// Lookup of easting, northing of the SW corner of the GB OS 500km squares
+// Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction for false origin at SV
 const os_500k_coords = Object.fromEntries(
     ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
 );
 
-// Lookup of easting, northing of the SW corner of the GB OS 100km squares
-const os_100k_coords = Object.fromEntries(
+function calculate_5x5_grid(basegrid, lettergrid, size) {
+    return Object.fromEntries(
+        Object.entries(basegrid).flatMap(o =>
+            Object.entries(lettergrid).map(t =>
+                [o[0]+t[0], [o[1][0]+(size*t[1][0]),o[1][1]+(size*t[1][1])]]
+            )
+        )
+    );
+}
+
+function calculate_10x10_grid(basegrid, size) {
+    return Object.fromEntries(
+        Object.entries(basegrid).flatMap(o =>
+            [...Array(10).keys()].flatMap(x => 
+                [...Array(10).keys()].map(y => 
+                    [o[0] + x + y, [o[1][0]+(x*size), o[1][1]+(y*size)]]
+                )
+            )
+        )
+    );
+}
+
+// Lookup of easting, northing of the SW corner of the GB OS 100km squares, applying correction for false origin at SV
+const os_100k_coords = Object.fromEntries(Object.entries(calculate_5x5_grid(os_500k_coords, os_grid_letters, 100000)).filter(([k,v]) => 
     [
                     'HP',
                'HT','HU',
@@ -54,39 +76,16 @@ const os_100k_coords = Object.fromEntries(
      'SM','SN','SO','SP','TL','TM',
      'SR','SS','ST','SU','TQ','TR',
 'SV','SW','SX','SY','SZ','TV'
-    ].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000) + (os_grid_letters[o[1]][0] * 100000), ((os_grid_letters[o[0]][1]-1) * 500000) + (os_grid_letters[o[1]][1] * 100000)]])
-);
+    ].includes(k)));
 
 // Lookup of easting, northing of the SW corner of the GB OS 10km squares
-const os_10k_coords = Object.fromEntries(
-    Object.entries(os_100k_coords).flatMap(o =>
-        [...Array(10).keys()].flatMap(x => 
-            [...Array(10).keys()].map(y => 
-                [o[0] + x + y, [o[1][0]+(x*10000), o[1][1]+(y*10000)]]
-            )
-        )
-    )
-);
+const os_10k_coords = calculate_10x10_grid(os_100k_coords, 10000);
 
 // Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
-const os_2k_coords = Object.fromEntries(
-    Object.entries(os_10k_coords).flatMap(o =>
-        Object.entries(os_tetrad_letters).map(t =>
-            [o[0]+t[0], [o[1][0]+(2000*t[1][0]),o[1][1]+(2000*t[1][1])]]
-        )
-    )
-);
+const os_2k_coords = calculate_5x5_grid(os_10k_coords, os_tetrad_letters, 2000);
 
 // Lookup of easting, northing of the SW corner of the GB OS 1km squares
-const os_1k_coords = Object.fromEntries(
-    Object.entries(os_10k_coords).flatMap(o =>
-        [...Array(10).keys()].flatMap(x => 
-            [...Array(10).keys()].map(y => 
-                [o[0] + x + y, [o[1][0]+(x*1000), o[1][1]+(y*1000)]]
-            )
-        )
-    )
-);
+const os_1k_coords = calculate_10x10_grid(os_10k_coords, 1000);
 
 const os_grids = {
     '500k': os_500k_coords,
