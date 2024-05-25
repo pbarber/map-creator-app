@@ -51,7 +51,7 @@ function coords_to_polygons(coords, size) {
         reproject_osgb_to_wgs84([a[1][0]+size, a[1][1]+size]),
         reproject_osgb_to_wgs84([a[1][0]+size, a[1][1]]),
         reproject_osgb_to_wgs84([a[1][0], a[1][1]])
-    ],{ fillOpacity: 0.5, fillColor: '#9a8fcd' })]));
+    ],{ fill: false, color: '#ccc' })]));
 }
 
 var request = new XMLHttpRequest();
@@ -468,11 +468,12 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
 //        const os_500k_polygons = coords_to_polygons(os_500k_coords, 500000);
-        const os_100k_polygons = coords_to_polygons(os_100k_coords, 100000);
-        const os_10k_polygons = coords_to_polygons(os_10k_coords, 10000);
+//        const os_100k_polygons = coords_to_polygons(os_100k_coords, 100000);
+//        const os_10k_polygons = coords_to_polygons(os_10k_coords, 10000);
+        const os_2k_polygons = coords_to_polygons(os_2k_coords, 2000);
     
         if (event.target.checked) {
-            Object.values(os_100k_polygons).map(o => gridLayer.addLayer(o));
+            Object.values(os_2k_polygons).map(o => gridLayer.addLayer(o));
         } else {
             gridLayer.clearLayers();
         }
