@@ -10,10 +10,7 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     maxZoom: 19,
 });
-const gridLayer = L.gridLayer({
-    attribution: 'Grid Layer',
-    tileSize: 256
-});
+const gridLayer = L.featureGroup();
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
@@ -68,61 +65,6 @@ request.open('GET', 'https://raw.githubusercontent.com/OrdnanceSurvey/os-transfo
 request.responseType = 'arraybuffer';
 request.send();
 
-gridLayer.createTile = function(coords) {
-    var tile = L.DomUtil.create('canvas', 'leaflet-tile');
-    var size = this.getTileSize();
-    tile.width = size.x;
-    tile.height = size.y;
-    var ctx = tile.getContext('2d');
-
-    // Get the tile's northwest and southeast coordinates
-    var nwPoint = coords.scaleBy(size);
-    var sePoint = nwPoint.add(size);
-    var nw = this._map.unproject(nwPoint, coords.z); // get lat/long of north west point
-    var se = this._map.unproject(sePoint, coords.z); // get lat/long of south east point
-    var tileBounds = L.rectangle([[se.lng, nw.lat], [nw.lng, se.lat]]);
-
-    var nwosni = proj4('EPSG:27700', [nw.lng, nw.lat]); // get OSNI easting/northing of north west point
-    var seosni = proj4('EPSG:27700', [se.lng, se.lat]); // get OSNI easting/northing of north west point
-
-    var furthestN = Math.floor(nwosni[1]/1000)*1000; // get furthest north 1km northing in OSNI which is south of the north edge of the tile
-    var furthestS = Math.ceil(seosni[1]/1000)*1000;  // get furthest south 1km northing in OSNI which is north of the south edge of the tile
-    var furthestW = Math.ceil(nwosni[0]/1000)*1000; // get furthest west 1km easting in OSNI which is east of the west edge of the tile
-    var furthestE = Math.floor(seosni[0]/1000)*1000;  // get furthest east 1km easting in OSNI which is west of the east edge of the tile
-    // West/East lines - at latitudes divisible by 1km
-    ctx.beginPath();
-    for (var latosni = furthestS; latosni <= furthestN; latosni += 1000) {
-        var crossline = L.polyline([proj4('EPSG:27700', 'EPSG:4326', [furthestW-1000, latosni]), proj4('EPSG:27700', 'EPSG:4326', [furthestE+1000, latosni])]);
-        var edgeIntersect = turf.lineIntersect(crossline.toGeoJSON(), tileBounds.toGeoJSON());
-        if (edgeIntersect.features.length > 1) {
-            ctx.moveTo(size.x * ((edgeIntersect.features[0].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[0].geometry.coordinates[0]) / (nw.lat - se.lat)));
-            ctx.lineTo(size.x * ((edgeIntersect.features[1].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[1].geometry.coordinates[0]) / (nw.lat - se.lat)));
-            for (var lngosni = furthestW; lngosni <= furthestE; lngosni += 1000) {
-                var north = proj4('EPSG:27700', 'EPSG:4326', [lngosni, nwosni[1]]);
-                var northx = size.x * ((north[0] - se.lng) / (nw.lng - se.lng));
-    //            ctx.fillText(lngosni + ', ' + latosni, northx + 15, easty + 15);
-            }
-        }
-    }
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.stroke();
-
-    // North/South lines - at longitudes divisible by 1km
-    ctx.beginPath();
-    for (var lngosni = furthestW; lngosni <= furthestE; lngosni += 1000) {
-        var crossline = L.polyline([proj4('EPSG:27700', 'EPSG:4326', [lngosni, furthestS-1000]), proj4('EPSG:27700', 'EPSG:4326', [lngosni, furthestN+1000])]);
-        var edgeIntersect = turf.lineIntersect(crossline.toGeoJSON(), tileBounds.toGeoJSON());
-        if (edgeIntersect.features.length > 1) {
-            ctx.moveTo(size.x * ((edgeIntersect.features[0].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[0].geometry.coordinates[0]) / (nw.lat - se.lat)));
-            ctx.lineTo(size.x * ((edgeIntersect.features[1].geometry.coordinates[1] - nw.lng) / (se.lng - nw.lng)), size.y * ((nw.lat - edgeIntersect.features[1].geometry.coordinates[0]) / (nw.lat - se.lat)));
-        }
-    }
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.stroke();
-
-    return tile;
-};
-
 const defaultColour = '#13a300';
 
 // TODO: add tetrad grid
@@ -130,10 +72,11 @@ const defaultColour = '#13a300';
 // Create layer control and add to the map
 const baseLayers = {
   'Blank': blankLayer,
-  'OpenStreetMap': osmLayer,
-  'Grid': gridLayer
+  'OpenStreetMap': osmLayer
 };
 L.control.layers(baseLayers).addTo(map);
+
+gridLayer.addTo(map);
 
 const objectsTable = document.getElementById('objects-table');
 const categoriesTable = document.getElementById('categories-table');
@@ -527,9 +470,12 @@ document.addEventListener('DOMContentLoaded', function() {
 //        const os_500k_polygons = coords_to_polygons(os_500k_coords, 500000);
         const os_100k_polygons = coords_to_polygons(os_100k_coords, 100000);
         const os_10k_polygons = coords_to_polygons(os_10k_coords, 10000);
-        var group = new L.FeatureGroup();
-        Object.values(os_100k_polygons).map(o => group.addLayer(o));
-        group.addTo(map);
+    
+        if (event.target.checked) {
+            Object.values(os_100k_polygons).map(o => gridLayer.addLayer(o));
+        } else {
+            gridLayer.clearLayers();
+        }
     });
 
     M.Modal.init(document.getElementById('object-modal'));
