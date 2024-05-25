@@ -12,6 +12,14 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 });
 const gridLayer = L.featureGroup();
 
+// TODO: add tetrad names when grid shown
+// TODO: only show grid when at reasonable zoom level
+// TODO: only show object labels when at reasonable zoom level
+// TODO: use a GeoJSON file for the grid, move calculation to a utility function
+// TODO: extend help text to describe click behaviour
+// TODO: new app to click on a point and provide OSGB grid refs
+// TODO: document packages used
+
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
         Object.entries(basegrid).flatMap(o =>
@@ -66,8 +74,6 @@ request.responseType = 'arraybuffer';
 request.send();
 
 const defaultColour = '#13a300';
-
-// TODO: add tetrad grid
 
 // Create layer control and add to the map
 const baseLayers = {
