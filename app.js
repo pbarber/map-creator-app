@@ -81,13 +81,15 @@ function create_osgb_grid_wgs84() {
         'A': [0, 0],'F': [1, 0],'K': [2, 0],'Q': [3, 0],'V': [4, 0]
     };
 
+    var osgb = {coords: {}, polygons: {}};
+
     // Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction for false origin at SV
-    const os_500k_coords = Object.fromEntries(
+    osgb.coords['500k'] = Object.fromEntries(
         ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
     );
 
     // Lookup of easting, northing of the SW corner of the GB OS 100km squares
-    const os_100k_coords = Object.fromEntries(Object.entries(calculate_5x5_grid(os_500k_coords, os_grid_letters, 100000)).filter(([k,v]) => 
+    osgb.coords['100k'] = Object.fromEntries(Object.entries(calculate_5x5_grid(osgb.coords['500k'], os_grid_letters, 100000)).filter(([k,v]) => 
         [
                         'HP',
                 'HT','HU',
@@ -104,26 +106,16 @@ function create_osgb_grid_wgs84() {
     'SV','SW','SX','SY','SZ','TV'
         ].includes(k)));
 
-    const os_10k_coords = calculate_10x10_grid(os_100k_coords, 10000); // Lookup of easting, northing of the SW corner of the GB OS 10km squares
-    const os_2k_coords = calculate_5x5_grid(os_10k_coords, os_tetrad_letters, 2000); // Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
-    const os_1k_coords = calculate_10x10_grid(os_10k_coords, 1000); // Lookup of easting, northing of the SW corner of the GB OS 1km squares
+    osgb.coords['10k'] = calculate_10x10_grid(osgb.coords['100k'], 10000); // Lookup of easting, northing of the SW corner of the GB OS 10km squares
+    osgb.coords['2k'] = calculate_5x5_grid(osgb.coords['10k'], os_tetrad_letters, 2000); // Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
+    osgb.coords['1k'] = calculate_10x10_grid(osgb.coords['10k'], 1000); // Lookup of easting, northing of the SW corner of the GB OS 1km squares
 
-    const osgb = {
-        coords: {
-            '500k': os_500k_coords,
-            '100k': os_100k_coords,
-            '10k': os_10k_coords,
-            '2k': os_2k_coords,
-            '1k': os_1k_coords
-        },
-        polygons: {
-            '500k': coords_to_polygons(os_500k_coords, 500000),
-            '100k': coords_to_polygons(os_100k_coords, 100000),
-            '10k': coords_to_polygons(os_10k_coords, 10000),
-            '2k': coords_to_polygons(os_2k_coords, 2000),
-            '1k': coords_to_polygons(os_1k_coords, 1000)
-        }
-    };
+    // Create polygons for all levels of the grid
+    osgb.polygons['500k'] = coords_to_polygons(osgb.coords['500k'], 500000);
+    osgb.polygons['100k'] = coords_to_polygons(osgb.coords['100k'], 100000);
+    osgb.polygons['10k'] = coords_to_polygons(osgb.coords['10k'], 10000);
+    osgb.polygons['2k'] = coords_to_polygons(osgb.coords['2k'], 2000);
+    osgb.polygons['1k'] = coords_to_polygons(osgb.coords['1k'], 1000);
 
     return(osgb);
 }
