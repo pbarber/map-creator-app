@@ -62,6 +62,72 @@ function coords_to_polygons(coords, size) {
     ],{ fill: false, color: '#ccc' })]));
 }
 
+function create_osgb_grid_wgs84() {
+    // Lookup of SW corner of the OS grid squares
+    const os_grid_letters = {
+        'A': [0, 4],'B': [1, 4],'C': [2, 4],'D': [3, 4],'E': [4, 4],
+        'F': [0, 3],'G': [1, 3],'H': [2, 3],'J': [3, 3],'K': [4, 3],
+        'L': [0, 2],'M': [1, 2],'N': [2, 2],'O': [3, 2],'P': [4, 2],
+        'Q': [0, 1],'R': [1, 1],'S': [2, 1],'T': [3, 1],'U': [4, 1],
+        'V': [0, 0],'W': [1, 0],'X': [2, 0],'Y': [3, 0],'Z': [4, 0]
+    };
+
+    // Lookup of SW corner of the OS tetrad squares
+    const os_tetrad_letters = {
+        'E': [0, 4],'J': [1, 4],'P': [2, 4],'U': [3, 4],'Z': [4, 4],
+        'D': [0, 3],'I': [1, 3],'N': [2, 3],'T': [3, 3],'Y': [4, 3],
+        'C': [0, 2],'H': [1, 2],'M': [2, 2],'S': [3, 2],'X': [4, 2],
+        'B': [0, 1],'G': [1, 1],'L': [2, 1],'R': [3, 1],'W': [4, 1],
+        'A': [0, 0],'F': [1, 0],'K': [2, 0],'Q': [3, 0],'V': [4, 0]
+    };
+
+    // Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction for false origin at SV
+    const os_500k_coords = Object.fromEntries(
+        ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
+    );
+
+    // Lookup of easting, northing of the SW corner of the GB OS 100km squares
+    const os_100k_coords = Object.fromEntries(Object.entries(calculate_5x5_grid(os_500k_coords, os_grid_letters, 100000)).filter(([k,v]) => 
+        [
+                        'HP',
+                'HT','HU',
+        'HW','HX','HY','HZ',
+    'NA','NB','NC','ND',
+    'NF','NG','NH','NJ','NK',
+    'NL','NM','NN','NO',
+        'NR','NS','NT','NU',
+        'NW','NX','NY','NZ',
+            'SC','SD','SE','TA',
+            'SH','SJ','SK','TF','TG',
+        'SM','SN','SO','SP','TL','TM',
+        'SR','SS','ST','SU','TQ','TR',
+    'SV','SW','SX','SY','SZ','TV'
+        ].includes(k)));
+
+    const os_10k_coords = calculate_10x10_grid(os_100k_coords, 10000); // Lookup of easting, northing of the SW corner of the GB OS 10km squares
+    const os_2k_coords = calculate_5x5_grid(os_10k_coords, os_tetrad_letters, 2000); // Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
+    const os_1k_coords = calculate_10x10_grid(os_10k_coords, 1000); // Lookup of easting, northing of the SW corner of the GB OS 1km squares
+
+    const osgb = {
+        coords: {
+            '500k': os_500k_coords,
+            '100k': os_100k_coords,
+            '10k': os_10k_coords,
+            '2k': os_2k_coords,
+            '1k': os_1k_coords
+        },
+        polygons: {
+            '500k': coords_to_polygons(os_500k_coords, 500000),
+            '100k': coords_to_polygons(os_100k_coords, 100000),
+            '10k': coords_to_polygons(os_10k_coords, 10000),
+            '2k': coords_to_polygons(os_2k_coords, 2000),
+            '1k': coords_to_polygons(os_1k_coords, 1000)
+        }
+    };
+
+    return(osgb);
+}
+
 var request = new XMLHttpRequest();
 request.onload = function() {
     var arrayBuffer = request.response;
@@ -421,65 +487,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleGridBtn.addEventListener('click', function(event) {
         if (event.target.checked) {
-            // Lookup of SW corner of the OS grid squares
-            const os_grid_letters = {
-                'A': [0, 4],'B': [1, 4],'C': [2, 4],'D': [3, 4],'E': [4, 4],
-                'F': [0, 3],'G': [1, 3],'H': [2, 3],'J': [3, 3],'K': [4, 3],
-                'L': [0, 2],'M': [1, 2],'N': [2, 2],'O': [3, 2],'P': [4, 2],
-                'Q': [0, 1],'R': [1, 1],'S': [2, 1],'T': [3, 1],'U': [4, 1],
-                'V': [0, 0],'W': [1, 0],'X': [2, 0],'Y': [3, 0],'Z': [4, 0]
-            };
-
-            // Lookup of SW corner of the OS tetrad squares
-            const os_tetrad_letters = {
-                'E': [0, 4],'J': [1, 4],'P': [2, 4],'U': [3, 4],'Z': [4, 4],
-                'D': [0, 3],'I': [1, 3],'N': [2, 3],'T': [3, 3],'Y': [4, 3],
-                'C': [0, 2],'H': [1, 2],'M': [2, 2],'S': [3, 2],'X': [4, 2],
-                'B': [0, 1],'G': [1, 1],'L': [2, 1],'R': [3, 1],'W': [4, 1],
-                'A': [0, 0],'F': [1, 0],'K': [2, 0],'Q': [3, 0],'V': [4, 0]
-            };
-
-            // Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction for false origin at SV
-            const os_500k_coords = Object.fromEntries(
-                ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
-            );
-
-            // Lookup of easting, northing of the SW corner of the GB OS 100km squares
-            const os_100k_coords = Object.fromEntries(Object.entries(calculate_5x5_grid(os_500k_coords, os_grid_letters, 100000)).filter(([k,v]) => 
-                [
-                                'HP',
-                        'HT','HU',
-                'HW','HX','HY','HZ',
-            'NA','NB','NC','ND',
-            'NF','NG','NH','NJ','NK',
-            'NL','NM','NN','NO',
-                'NR','NS','NT','NU',
-                'NW','NX','NY','NZ',
-                    'SC','SD','SE','TA',
-                    'SH','SJ','SK','TF','TG',
-                'SM','SN','SO','SP','TL','TM',
-                'SR','SS','ST','SU','TQ','TR',
-            'SV','SW','SX','SY','SZ','TV'
-                ].includes(k)));
-
-            const os_10k_coords = calculate_10x10_grid(os_100k_coords, 10000); // Lookup of easting, northing of the SW corner of the GB OS 10km squares
-            const os_2k_coords = calculate_5x5_grid(os_10k_coords, os_tetrad_letters, 2000); // Lookup of easting, northing of the SW corner of the GB OS 2km tetrads
-            const os_1k_coords = calculate_10x10_grid(os_10k_coords, 1000); // Lookup of easting, northing of the SW corner of the GB OS 1km squares
-
-            const os_grids = {
-                '500k': os_500k_coords,
-                '100k': os_100k_coords,
-                '10k': os_10k_coords,
-                '2k': os_2k_coords,
-                '1k': os_1k_coords
-            };
-
-    //        const os_500k_polygons = coords_to_polygons(os_500k_coords, 500000);
-    //        const os_100k_polygons = coords_to_polygons(os_100k_coords, 100000);
-    //        const os_10k_polygons = coords_to_polygons(os_10k_coords, 10000);
-            const os_2k_polygons = coords_to_polygons(os_2k_coords, 2000);
-    
-            Object.values(os_2k_polygons).map(o => gridLayer.addLayer(o));
+            osgb = create_osgb_grid_wgs84();
+            Object.values(osgb.polygons['2k']).map(o => gridLayer.addLayer(o));
         } else {
             gridLayer.clearLayers();
         }
