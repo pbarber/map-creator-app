@@ -10,7 +10,17 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     maxZoom: 19,
 });
+
+// Create layer control and add to the map
+const baseLayers = {
+    'Blank': blankLayer,
+    'OpenStreetMap': osmLayer
+};
+L.control.layers(baseLayers).addTo(map);
+
+// Create empty grid layer
 const gridLayer = L.featureGroup();
+gridLayer.addTo(map);
 
 // TODO: add tetrad names when grid shown
 // TODO: only show grid when at reasonable zoom level
@@ -33,8 +43,8 @@ function calculate_5x5_grid(basegrid, lettergrid, size) {
 function calculate_10x10_grid(basegrid, size) {
     return Object.fromEntries(
         Object.entries(basegrid).flatMap(o =>
-            [...Array(10).keys()].flatMap(x => 
-                [...Array(10).keys()].map(y => 
+            [...Array(10).keys()].flatMap(x =>
+                [...Array(10).keys()].map(y =>
                     [o[0] + x + y, [o[1][0]+(x*size), o[1][1]+(y*size)]]
                 )
             )
@@ -42,6 +52,7 @@ function calculate_10x10_grid(basegrid, size) {
     );
 }
 
+// Two conversion attempts necessary in some cases as the nadgrids option (preferred) does not cover the outer edges of the outermost grid squares
 function reproject_osgb_to_wgs84(coords) {
     var result = proj4('EPSG:27700', 'EPSG:4326', coords)
     if (isNaN(result[0])) {
@@ -83,13 +94,13 @@ function create_osgb_grid_wgs84() {
 
     var osgb = {coords: {}, polygons: {}};
 
-    // Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction for false origin at SV
+    // Lookup of easting, northing of the SW corner of the GB OS 500km squares, applying correction (-2, -1) for false origin at SV
     osgb.coords['500k'] = Object.fromEntries(
         ['H','N','S','T'].map(o => [o, [((os_grid_letters[o[0]][0]-2) * 500000), ((os_grid_letters[o[0]][1]-1) * 500000)]])
     );
 
     // Lookup of easting, northing of the SW corner of the GB OS 100km squares
-    osgb.coords['100k'] = Object.fromEntries(Object.entries(calculate_5x5_grid(osgb.coords['500k'], os_grid_letters, 100000)).filter(([k,v]) => 
+    osgb.coords['100k'] = Object.fromEntries(Object.entries(calculate_5x5_grid(osgb.coords['500k'], os_grid_letters, 100000)).filter(([k,v]) =>
         [
                         'HP',
                 'HT','HU',
@@ -124,6 +135,7 @@ var request = new XMLHttpRequest();
 request.onload = function() {
     var arrayBuffer = request.response;
     proj4.nadgrid('OSTN15_NTv2_OSGBtoETRS', arrayBuffer);
+    // Two definitions necessary as the nadgrids option (preferred) does not cover the outer edges of the outermost grid squares
     proj4.defs('EPSG:27700', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs +nadgrids=OSTN15_NTv2_OSGBtoETRS');
     proj4.defs('EPSG:27700a', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs');
 };
@@ -132,15 +144,6 @@ request.responseType = 'arraybuffer';
 request.send();
 
 const defaultColour = '#13a300';
-
-// Create layer control and add to the map
-const baseLayers = {
-  'Blank': blankLayer,
-  'OpenStreetMap': osmLayer
-};
-L.control.layers(baseLayers).addTo(map);
-
-gridLayer.addTo(map);
 
 const objectsTable = document.getElementById('objects-table');
 const categoriesTable = document.getElementById('categories-table');
@@ -480,6 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleGridBtn.addEventListener('click', function(event) {
         if (event.target.checked) {
             osgb = create_osgb_grid_wgs84();
+            var geojson = {type: "FeatureCollection", features: []};
+            Object.keys(osgb.polygons).forEach(function(grid) {
+                const feature = Object.entries(osgb.polygons[grid]).map(v => {
+                    var g = v[1].toGeoJSON();
+                    g.properties.name = v[0];
+                    g.properties.grid = grid;
+                    return(g);
+                });
+                geojson.features = geojson.features.concat(feature);
+            });
+            const json = JSON.stringify(geojson, null, 2); // Convert the object to JSON with indentation for readability
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'osgb-grids-' + (new Date()).toISOString() + '.json'; // Set the desired file name
+            a.click();
+            URL.revokeObjectURL(url);
             Object.values(osgb.polygons['2k']).map(o => gridLayer.addLayer(o));
         } else {
             gridLayer.clearLayers();
