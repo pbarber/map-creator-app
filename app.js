@@ -21,8 +21,6 @@ L.control.layers(baseLayers).addTo(map);
 // TODO: add tetrad names when grid shown
 // TODO: only show grid when at reasonable zoom level
 // TODO: only show object labels when at reasonable zoom level
-// TODO: use a GeoJSON file for the grid, move calculation to a utility function
-// TODO: extend help text to describe click behaviour
 // TODO: new app to click on a point and provide OSGB grid refs
 // TODO: document packages used
 
@@ -275,7 +273,7 @@ var info = L.control({position: 'topleft'});
 info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
     this._div.innerHTML = (
-        '<b>Click <i class="fa fa-search"></i> below to search for a location</b><br />The map will colour areas by their category, click Settings to change area formatting<br />' +
+        '<b>Click <i class="fa fa-search"></i> below to search for a location</b><br />Use longpress/right-click to select locations which cannot be identified via search. The map will colour areas by their category, click Settings to change formatting.<br />' +
         '<a href="https://github.com/pbarber/map-creator-app/blob/main/README.md">More information</a>'
         );
     return this._div;
