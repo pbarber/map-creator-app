@@ -18,10 +18,6 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// Create empty grid layer
-const gridLayer = L.featureGroup();
-gridLayer.addTo(map);
-
 // TODO: add tetrad names when grid shown
 // TODO: only show grid when at reasonable zoom level
 // TODO: only show object labels when at reasonable zoom level
@@ -186,7 +182,7 @@ function selectOption(selectorId, selected) {
 function updateObjectLayer(category) {
     map.removeLayer(layers[category]);
     const layer = settings.objects.filter(o => (o.category === category)).map(o => o.geojson);
-    layers[category] = L.geoJson(layer, {style: layerStyle(settings.categories.find(o => o.id === category))}).addTo(map)
+    layers[category] = L.geoJson(layer, {style: layerStyle(settings.categories.find(o => o.id === category))}).addTo(map);
 }
 
 function updateLabelLayer() {
@@ -491,23 +487,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var toggleGridBtn = document.getElementById('toggle-grid');
     var selectLayers = document.getElementsByClassName('leaflet-control-layers-selector');
 
-    toggleGridBtn.addEventListener('click', function(event) {
+    toggleGridBtn.addEventListener('click', async function(event) {
         if (event.target.checked) {
-            osgb = create_osgb_grid_wgs84();
-            var geojson = {type: "FeatureCollection", features: []};
-            Object.keys(osgb.polygons).forEach(function(grid) {
-                const feature = Object.entries(osgb.polygons[grid]).map(v => {
-                    var g = v[1].toGeoJSON();
-                    g.properties.name = v[0];
-                    g.properties.grid = grid;
-                    return(g);
-                });
-                geojson.features = geojson.features.concat(feature);
-            });
-            downloadObjectAsJSON(geojson, 'osgb-grids-' + (new Date()).toISOString() + '.geojson');
-            Object.values(osgb.polygons['2k']).map(o => gridLayer.addLayer(o));
+            var result = await fetch("osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson",).then(
+                (data)=>data.json()
+            );
+            layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc'}}).addTo(map)
         } else {
-            gridLayer.clearLayers();
+            map.removeLayer(layers['osgb-tetrad-layer']);
         }
     });
 
