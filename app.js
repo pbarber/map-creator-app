@@ -131,6 +131,17 @@ function create_osgb_grid_wgs84() {
     return(osgb);
 }
 
+function downloadObjectAsJSON(data, filename) {
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 var request = new XMLHttpRequest();
 request.onload = function() {
     var arrayBuffer = request.response;
@@ -493,14 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 geojson.features = geojson.features.concat(feature);
             });
-            const json = JSON.stringify(geojson, null, 2); // Convert the object to JSON with indentation for readability
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'osgb-grids-' + (new Date()).toISOString() + '.json'; // Set the desired file name
-            a.click();
-            URL.revokeObjectURL(url);
+            downloadObjectAsJSON(geojson, 'osgb-grids-' + (new Date()).toISOString() + '.geojson');
             Object.values(osgb.polygons['2k']).map(o => gridLayer.addLayer(o));
         } else {
             gridLayer.clearLayers();
@@ -528,14 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
     downloadGeoJSONBtn.addEventListener('click', function() {
         settings.zoom = map.getZoom();
         settings.centre = map.getCenter();
-        const json = JSON.stringify(settings, null, 2); // Convert the object to JSON with indentation for readability
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'map-creator' + (new Date()).toISOString() + '.json'; // Set the desired file name
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadObjectAsJSON(settings, 'map-creator-' + (new Date()).toISOString() + '.json');
     });
 
     uploadGeoJSONInput.addEventListener('change', function(event) {
