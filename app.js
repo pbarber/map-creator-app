@@ -490,9 +490,35 @@ document.addEventListener('DOMContentLoaded', function() {
             var result = await fetch("osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson",).then(
                 (data)=>data.json()
             );
-            layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc'}}).addTo(map)
+            layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc'}}).addTo(map);
         } else {
             map.removeLayer(layers['osgb-tetrad-layer']);
+            layers['osgb-tetrad-layer'] = null;
+        }
+    });
+
+    map.on("zoomend", function (event) { 
+        if (layers.hasOwnProperty('osgb-tetrad-layer') && layers['osgb-tetrad-layer'] !== null) {
+            if (event.target._zoom > 10) {
+                if (!map.hasLayer(layers['osgb-tetrad-layer'])) {
+                    layers['osgb-tetrad-layer'].addTo(map);
+                }
+            } else {
+                if (map.hasLayer(layers['osgb-tetrad-layer'])) {
+                    map.removeLayer(layers['osgb-tetrad-layer']);
+                }
+            }
+        }
+        if (layers.hasOwnProperty('label-layer') && layers['label-layer'] !== null) {
+            if (event.target._zoom > 11) {
+                if (!map.hasLayer(layers['label-layer'])) {
+                    layers['label-layer'].addTo(map);
+                }
+            } else {
+                if (map.hasLayer(layers['label-layer'])) {
+                    map.removeLayer(layers['label-layer']);
+                }
+            }
         }
     });
 
