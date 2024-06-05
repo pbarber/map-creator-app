@@ -1,6 +1,12 @@
 // Initialize the map
 const map = L.map('map').setView([51.505, -0.09], 13);
 map.zoomControl.setPosition('topright');
+map.createPane('labels');
+map.getPane('labels').style.zIndex = 650;
+map.getPane('labels').style.pointerEvents = 'none';
+map.createPane('grid');
+map.getPane('grid').style.zIndex = 649;
+map.getPane('grid').style.pointerEvents = 'none';
 
 // Add base layers
 const blankLayer = L.tileLayer('', {
@@ -19,8 +25,6 @@ const baseLayers = {
 L.control.layers(baseLayers).addTo(map);
 
 // TODO: add tetrad names when grid shown
-// TODO: only show grid when at reasonable zoom level
-// TODO: only show object labels when at reasonable zoom level
 // TODO: new app to click on a point and provide OSGB grid refs
 // TODO: document packages used
 
@@ -191,7 +195,7 @@ function updateLabelLayer() {
         marker.bindTooltip(o.title, {permanent: true, className: "map-label", offset: [-16  , 27], direction: 'center' });
         labels.push(marker);
     });
-    layers['label-layer'] = L.layerGroup(labels).addTo(map);
+    layers['label-layer'] = L.layerGroup(labels, {pane: 'labels'}).addTo(map);
 }
 
 function addObject(object) {
@@ -490,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var result = await fetch("osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson",).then(
                 (data)=>data.json()
             );
-            layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc'}}).addTo(map);
+            layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc', opacity: 0.5, weight: 2}, pane: 'grid'}).addTo(map);
         } else {
             map.removeLayer(layers['osgb-tetrad-layer']);
             layers['osgb-tetrad-layer'] = null;
@@ -525,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     M.Modal.init(document.getElementById('object-modal'));
     M.updateTextFields();
     // Add an empty layer for labels to the map
-    layers['label-layer'] = L.layerGroup([]).addTo(map)
+    layers['label-layer'] = L.layerGroup([], {pane: 'labels'}).addTo(map)
     // Make sure that the Blank layer is selected
     selectLayers[0].click()
 
