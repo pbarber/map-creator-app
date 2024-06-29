@@ -552,8 +552,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     downloadSVGBtn.addEventListener('click', function() {
-        var svgData = document.getElementsByClassName('leaflet-overlay-pane')[0].getElementsByTagName('svg')[0].outerHTML;
-        var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+        const svg = document.getElementsByClassName('leaflet-overlay-pane')[0].getElementsByTagName('svg')[0];
+        const textsvg = '<svg id="labels" viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">\n\t' + 
+            Object.values(layers['label-layer']._layers).map(function(a) {
+                var loc = map.latLngToLayerPoint(a.getLatLng());
+                var text = a._tooltip._content;
+                return('<text x="' + (loc.x) + '" y="' + (loc.y) + '" class="small" text-anchor="middle" font-family="Arial, Helvetica, sans-serif">' + text + '</text>');
+            }).join('\n\t') + '\n</svg>';
+        var fullsvg = '<svg viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">' + svg.outerHTML + textsvg + '</svg>'
+        var svgBlob = new Blob([fullsvg], {type:"image/svg+xml;charset=utf-8"});
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
         downloadLink.href = svgUrl;
