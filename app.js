@@ -481,6 +481,7 @@ categoriesTable.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', function() {
     var downloadGeoJSONBtn = document.getElementById('download-geojson');
+    var downloadSVGBtn = document.getElementById('download-svg');
     var bottomSheetTrigger = document.querySelector('.modal-trigger');
     var bottomSheetInstance = M.Modal.init(document.getElementById('bottom-sheet'));
     var categoryModalTrigger = document.querySelector('.add-category');
@@ -548,6 +549,18 @@ document.addEventListener('DOMContentLoaded', function() {
         settings.zoom = map.getZoom();
         settings.centre = map.getCenter();
         downloadObjectAsJSON(settings, 'map-creator-' + (new Date()).toISOString() + '.json');
+    });
+
+    downloadSVGBtn.addEventListener('click', function() {
+        var svgData = document.getElementsByClassName('leaflet-overlay-pane')[0].getElementsByTagName('svg')[0].outerHTML;
+        var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = 'map-creator-' + (new Date()).toISOString() + '.svg';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     });
 
     uploadGeoJSONInput.addEventListener('change', function(event) {
