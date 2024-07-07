@@ -159,7 +159,8 @@ const categoriesTable = document.getElementById('categories-table');
 
 var settings = {
     objects: [],
-    categories: []
+    categories: [],
+    showGrid: false
 };
 
 var layers = {};
@@ -492,11 +493,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleGridBtn.addEventListener('click', async function(event) {
         if (event.target.checked) {
+            settings.showGrid = true;
             var result = await fetch("osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson",).then(
                 (data)=>data.json()
             );
             layers['osgb-tetrad-layer'] = L.geoJson(result, {style: {fill: false, color: '#ccc', opacity: 0.5, weight: 2}, pane: 'grid'}).addTo(map);
         } else {
+            settings.showGrid = false;
             map.removeLayer(layers['osgb-tetrad-layer']);
             layers['osgb-tetrad-layer'] = null;
         }
@@ -559,7 +562,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 var text = a._tooltip._content;
                 return('<text x="' + (loc.x) + '" y="' + (loc.y) + '" class="small" text-anchor="middle" font-family="Arial, Helvetica, sans-serif">' + text + '</text>');
             }).join('\n\t') + '\n</svg>';
-        var fullsvg = '<svg viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">' + svg.outerHTML + textsvg + '</svg>'
+        var gridsvg = '';
+        if (settings.showGrid) {
+            gridsvg = document.getElementsByClassName('leaflet-grid-pane')[0].getElementsByTagName('svg')[0].outerHTML;
+        }
+        var fullsvg = '<svg viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">' + svg.outerHTML + textsvg + gridsvg + '</svg>'
         var svgBlob = new Blob([fullsvg], {type:"image/svg+xml;charset=utf-8"});
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
