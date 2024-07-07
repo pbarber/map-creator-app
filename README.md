@@ -1,4 +1,4 @@
-# Map Creator App
+# Map Creator App
 
 A basic web app that allows the user to create simple maps using geographical features displayed on [openstreetmap](https://www.openstreetmap.org). It is intended to allow the creation of maps containing only important features.
 
@@ -16,7 +16,7 @@ Adding features by clicking uses the [Overpass API](https://wiki.openstreetmap.o
 
 The map will automatically centre itself only when the first feature is added. All added features will be labelled with their name, if available, or the Overpass ID otherwise. The map can be dragged and zoomed.
 
-## Settings
+## ßSettings
 
 To change the way that features are displayed, click on the 'Settings' button. This will bring up a modal window containing a list of all features on the map. Any changes made in Settings are automatically applied. To return to the map from Settings, click on the greyed-out section of the map above the Settings window.
 
@@ -36,13 +36,13 @@ All settings can be saved using the Download Settings button. This will download
 
 Previously downloaded settings files can be uploaded using the 'Upload Settings' button. You should be able to share the JSON file with other users, who can then upload the file to view or work on your map.
 
-### Exporting an image
+### Exporting an image
 
 If you are happy with the map as it is displayed on the screen, you can use screengrab to take an image of the map and then crop it appropriately.
 
 If you would like to make further changes to the map, you can export the map as an SVG using the 'Download Image' button in Settings. If you want to make further adjustments to downloaded SVG files, [Inkscape](https://inkscape.org/) is recommended. This will allow you to change fonts, apply additional styling and adjust the position of labels.
 
-### Adding a GB tetrad grid
+### Adding a GB tetrad grid
 
 The app allows you to overlay a [Great Britain tetrad](https://www.bto.org/our-science/projects/birdatlas/methods/correct-grid-references/know-your-place) grid onto your map. This is useful for ornithological survey work.
 
