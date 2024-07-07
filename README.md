@@ -40,7 +40,7 @@ Previously downloaded settings files can be uploaded using the 'Upload Settings'
 
 If you are happy with the map as it is displayed on the screen, you can use screengrab to take an image of the map and then crop it appropriately.
 
-If you would like to make further changes to the map, you can export the map as an SVG. If you want to make further adjustments to downloaded maps, [Inkscape](https://inkscape.org/) is recommended. This will allow you to change fonts, apply additional styling and adjust the position of labels.
+If you would like to make further changes to the map, you can export the map as an SVG using the 'Download Image' button in Settings. If you want to make further adjustments to downloaded SVG files, [Inkscape](https://inkscape.org/) is recommended. This will allow you to change fonts, apply additional styling and adjust the position of labels.
 
 ### Adding a GB tetrad grid
 
