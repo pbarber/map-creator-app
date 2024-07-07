@@ -6,6 +6,10 @@ Maps can be downloaded as SVG files or screengrabbed.
 
 If you like the map and can afford it, please [donate to Action Cancer](https://actioncancer.org/donate-to-action-cancer/) or [buy me a coffee](https://www.buymeacoffee.com/pbarber).
 
+## Privacy
+
+The app uses Google Analytics to measure usage and to capture search and starting locations.
+
 ## Adding features
 
 To add features to the map, try using the search box to find the feature by name. The search uses the [Nominatim API](https://nominatim.openstreetmap.org).
