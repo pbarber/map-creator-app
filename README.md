@@ -16,7 +16,7 @@ Adding features by clicking uses the [Overpass API](https://wiki.openstreetmap.o
 
 The map will automatically centre itself only when the first feature is added. All added features will be labelled with their name, if available, or the Overpass ID otherwise. The map can be dragged and zoomed.
 
-## ßSettings
+## Settings
 
 To change the way that features are displayed, click on the 'Settings' button. This will bring up a modal window containing a list of all features on the map. Any changes made in Settings are automatically applied. To return to the map from Settings, click on the greyed-out section of the map above the Settings window.
 
