@@ -26,7 +26,6 @@ L.control.layers(baseLayers).addTo(map);
 
 // TODO: add tetrad names when grid shown
 // TODO: new app to click on a point and provide OSGB grid refs
-// TODO: document packages used
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
