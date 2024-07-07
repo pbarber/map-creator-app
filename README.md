@@ -8,7 +8,7 @@ If you like the map and can afford it, please [donate to Action Cancer](https://
 
 ## Adding features
 
-To add features to the map, try using the search box to find the feature by name. The search uses the [Nominatim API](https://nominatim.openstreetmap.org). 
+To add features to the map, try using the search box to find the feature by name. The search uses the [Nominatim API](https://nominatim.openstreetmap.org).
 
 Not all features are can be found using Nominatim, so you can also add features at the required position on the map by clicking, using either right-click (on mouse/mousepad) or long press (on mobile/tablet). To make it easier to locate the feature that you want to click, you can change the base map by clicking the layers button under the map zoom. Clicking behaves differently at different zoom levels, so if clicking does not find the right feature, try zooming in or out and then clicking again.
 
@@ -22,7 +22,7 @@ To change the way that features are displayed, click on the 'Settings' button. T
 
 ### Changing features
 
-To remove an incorrectly added feature, click on the 'Settings' button and use the 'bin' button next to the feature. To centre the map on the feature, click the 'target' button next to the feature. If you want to edit the feature name, or hide the label, use the 'pencil' button. All features are named 
+To remove an incorrectly added feature, click on the 'Settings' button and use the 'bin' button next to the feature. To centre the map on the feature, click the 'target' button next to the feature. If you want to edit the feature name, or hide the label, use the 'pencil' button.
 
 ### Categorising features
 
@@ -52,7 +52,7 @@ Don't read any further unless you really want to.
 
 ### App setup
 
-To run the app, clone the github repo and open [index.html](index.html) in a web browser. The app consists of a [single HTML file](index.html) and a [single JavaScript file](app.js). It uses a [static GeoJSON file for the tetrad grid](osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson). 
+To run the app, clone the github repo and open [index.html](index.html) in a web browser. The app consists of a [single HTML file](index.html) and a [single JavaScript file](app.js). It uses a [static GeoJSON file for the tetrad grid](osgb-2k-grid-2024-06-02T19_20_06.214Z.geojson).
 
 Key JavaScript libraries used are:
 
