@@ -555,17 +555,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     downloadSVGBtn.addEventListener('click', function() {
         const svg = document.getElementsByClassName('leaflet-overlay-pane')[0].getElementsByTagName('svg')[0];
-        const textsvg = '<svg id="labels" viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">\n\t' + 
-            Object.values(layers['label-layer']._layers).map(function(a) {
+        const textsvg = Object.values(layers['label-layer']._layers).map(
+            function(a) {
                 var loc = map.latLngToLayerPoint(a.getLatLng());
                 var text = a._tooltip._content;
                 return('<text x="' + (loc.x) + '" y="' + (loc.y) + '" class="small" text-anchor="middle" font-family="Arial, Helvetica, sans-serif">' + text + '</text>');
-            }).join('\n\t') + '\n</svg>';
+            }
+        ).join('\n\t');
         var gridsvg = '';
         if (settings.showGrid) {
-            gridsvg = document.getElementsByClassName('leaflet-grid-pane')[0].getElementsByTagName('svg')[0].outerHTML;
+            gridsvg = document.getElementsByClassName('leaflet-grid-pane')[0].getElementsByTagName('svg')[0].innerHTML;
         }
-        var fullsvg = '<svg viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">' + svg.outerHTML + textsvg + gridsvg + '</svg>'
+        var fullsvg = '<svg viewBox="' + svg.getAttribute('viewBox') + '" width="' + svg.getAttribute('width') + '" height="' + svg.getAttribute('height') + '">' + svg.innerHTML + textsvg + gridsvg + '</svg>'
         var svgBlob = new Blob([fullsvg], {type:"image/svg+xml;charset=utf-8"});
         var svgUrl = URL.createObjectURL(svgBlob);
         var downloadLink = document.createElement("a");
