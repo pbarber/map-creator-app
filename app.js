@@ -612,19 +612,52 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     map.addEventListener('contextmenu', async function(event) {
+        var overpassBody;
+        var mode = 'highway';
+        if (mode=='area') {
+            overpassBody = `data=
+[timeout:10]
+[out:json];
+is_in(${event.latlng.lat},${event.latlng.lng})->.a;
+way(pivot.a);
+out geom;
+`;
+        } else if (mode=='highway') {
+            overpassBody = `data=
+[timeout:10]
+[out:json];
+node(around:80,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
+way(bn.aroundnodes)[highway~".*"]->.allways;
+node(w.allways)->.waynodes;
+( 
+    node.waynodes.aroundnodes; 
+    way.allways.allways; 
+    );
+way(pivot.allways);
+out geom;
+`;
+        } else if (mode=='railway') {
+            overpassBody = `data=
+[timeout:10]
+[out:json];
+node(around:80,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
+way(bn.aroundnodes)[railway~".*"]->.allways;
+node(w.allways)->.waynodes;
+( 
+    node.waynodes.aroundnodes; 
+    way.allways.allways; 
+    );
+way(pivot.allways);
+out geom;
+`;
+        } else {
+            M.toast({html: 'Unexpected mode'})
+        }
         var result = await fetch(
             "https://overpass-api.de/api/interpreter",
             {
                 method: "POST",
-                body: "data="+ `
-                    [timeout:10]
-                    [out:json];
-                    is_in(${event.latlng.lat},${event.latlng.lng})->.a;
-                    way(pivot.a);
-                    out body;
-                    >;
-                    out skel qt;
-                `
+                body: overpassBody
             },
         ).then(
             (data)=>data.json()
@@ -632,31 +665,29 @@ document.addEventListener('DOMContentLoaded', function() {
         var added = false;
         if (result.elements.length !== 0) {
             // Get first way
-            var way = result.elements.find(o => (o.type==='way'));
-            var boundary = way.nodes.map(function(a) {
-                const loc = result.elements.find(o => (a===o.id));
-                return([loc.lon, loc.lat]);
-            });
-            if (way.nodes[0] === way.nodes.at(-1)) {
-                if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
-                    addObject({
-                        title: way.id.toString(),
-                        id: way.id,
-                        geojson: {
-                            type: "Polygon",
-                            coordinates: [boundary]
-                        },
-                        lat: event.latlng.lat,
-                        lon: event.latlng.lng,
-                        category: settings.categories[0].id,
-                        label: true
-                    });
-                    added = true;
-                } else {
-                    M.toast({html: 'Location is already on map, it will not be added'})
+            var way = result.elements[0];
+            var boundary = way.geometry.map(a => [a.lon, a.lat]);
+            if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
+                var type = 'MultiLineString';
+                if (way.nodes[0] === way.nodes.at(-1)) {
+                    type = 'Polygon';
                 }
+                console.log(boundary);
+                addObject({
+                    title: way.id.toString(),
+                    id: way.id,
+                    geojson: {
+                        type: type,
+                        coordinates: [boundary]
+                    },
+                    lat: event.latlng.lat,
+                    lon: event.latlng.lng,
+                    category: settings.categories[0].id,
+                    label: true
+                });
+                added = true;
             } else {
-                console.log('Line???');
+                M.toast({html: 'Location is already on map, it will not be added'})
             }
         }
         if (!added) {
