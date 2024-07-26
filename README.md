@@ -16,7 +16,7 @@ To add features to the map, try using the search box to find the feature by name
 
 Not all features are can be found using Nominatim, so you can also add features at the required position on the map by clicking, using either right-click (on mouse/mousepad) or long press (on mobile/tablet). To make it easier to locate the feature that you want to click, you can change the base map by clicking the layers button under the map zoom. Clicking behaves differently at different zoom levels, so if clicking does not find the right feature, try zooming in or out and then clicking again.
 
-Adding features by clicking uses the [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) and falls back to reverse Nominatim search if no features are found.
+Adding features by clicking uses the [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) and falls back to reverse Nominatim search if no features are found. The Settings page allows you to choose between Overpass API searches for areas, highways (including footpaths) and railways. For best results, zoom in as close as possible to roads, railways and footpaths and try clicking at different points along the line to find the right line. Some trial and error is usually needed when clicking, it is often best to keep clicking until you find the feature you want, then go into Settings to delete any unwanted features that were added.
 
 The map will automatically centre itself only when the first feature is added. All added features will be labelled with their name, if available, or the Overpass ID otherwise. The map can be dragged and zoomed.
 
