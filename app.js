@@ -679,7 +679,7 @@ out geom;
                     type = 'Polygon';
                 }
                 addObject({
-                    title: way.id.toString(),
+                    title: way.tags.hasOwnProperty('name') ? way.tags.name : way.id.toString(),
                     id: way.id,
                     geojson: {
                         type: type,
