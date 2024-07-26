@@ -626,7 +626,7 @@ out geom;
             overpassBody = `data=
 [timeout:10]
 [out:json];
-node(around:80,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
+node(around:10,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
 way(bn.aroundnodes)[highway~".*"]->.allways;
 node(w.allways)->.waynodes;
 ( 
@@ -640,7 +640,7 @@ out geom;
             overpassBody = `data=
 [timeout:10]
 [out:json];
-node(around:80,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
+node(around:10,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
 way(bn.aroundnodes)[railway~".*"]->.allways;
 node(w.allways)->.waynodes;
 ( 
@@ -663,16 +663,14 @@ out geom;
             (data)=>data.json()
         );
         var added = false;
-        if (result.elements.length !== 0) {
-            // Get first way
-            var way = result.elements[0];
+        for (var r = 0; r < result.elements.length; r++) {
+            var way = result.elements[r];
             var boundary = way.geometry.map(a => [a.lon, a.lat]);
             if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
                 var type = 'MultiLineString';
                 if (way.nodes[0] === way.nodes.at(-1)) {
                     type = 'Polygon';
                 }
-                console.log(boundary);
                 addObject({
                     title: way.id.toString(),
                     id: way.id,
@@ -686,8 +684,7 @@ out geom;
                     label: true
                 });
                 added = true;
-            } else {
-                M.toast({html: 'Location is already on map, it will not be added'})
+                break;
             }
         }
         if (!added) {
