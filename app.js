@@ -159,7 +159,8 @@ const categoriesTable = document.getElementById('categories-table');
 var settings = {
     objects: [],
     categories: [],
-    showGrid: false
+    showGrid: false,
+    clickmode: 'area'
 };
 
 var layers = {};
@@ -489,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var uploadGeoJSONInput = document.getElementById('upload-geojson');
     var toggleGridBtn = document.getElementById('toggle-grid');
     var selectLayers = document.getElementsByClassName('leaflet-control-layers-selector');
+    var clickModeRadioBtns = document.querySelectorAll('input[name="click-mode"]');
 
     toggleGridBtn.addEventListener('click', async function(event) {
         if (event.target.checked) {
@@ -504,6 +506,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    clickModeRadioBtns.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            settings.clickmode = this.value;
+        });
+    });
+    
     map.on("zoomend", function (event) { 
         if (layers.hasOwnProperty('osgb-tetrad-layer') && layers['osgb-tetrad-layer'] !== null) {
             if (event.target._zoom > 10) {
@@ -613,8 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     map.addEventListener('contextmenu', async function(event) {
         var overpassBody;
-        var mode = 'highway';
-        if (mode=='area') {
+        if (settings.clickmode=='area') {
             overpassBody = `data=
 [timeout:10]
 [out:json];
@@ -622,7 +629,7 @@ is_in(${event.latlng.lat},${event.latlng.lng})->.a;
 way(pivot.a);
 out geom;
 `;
-        } else if (mode=='highway') {
+        } else if (settings.clickmode=='highway') {
             overpassBody = `data=
 [timeout:10]
 [out:json];
@@ -636,7 +643,7 @@ node(w.allways)->.waynodes;
 way(pivot.allways);
 out geom;
 `;
-        } else if (mode=='railway') {
+        } else if (settings.clickmode=='railway') {
             overpassBody = `data=
 [timeout:10]
 [out:json];
