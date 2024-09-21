@@ -206,7 +206,7 @@ function addObject(object) {
     // Add a new row to the objects table
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${object.title}</td>
+      <td><i class="colour-block" style="background-color: rgba(${hexToRgb(category.fill)}, ${category.fillOpacity}); border: 2px solid rgba(${hexToRgb(category.colour)}, ${category.opacity})"></i>${object.title}</td>
       <td>
         <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="remove">
           <span class="material-icons">delete</span>
@@ -235,7 +235,7 @@ function addObject(object) {
 
 function updateObjectTableRow(object, category) {
     const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
-    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${object.title}</td>`;
+    cells[0].innerHTML = `<td><i class="colour-block" style="background-color: rgba(${hexToRgb(category.fill)}, ${category.fillOpacity}); border: 2px solid rgba(${hexToRgb(category.colour)}, ${category.opacity})"></i>${object.title}</td>`;
 }
 
 function editObject(object) {
@@ -370,7 +370,7 @@ function addCategory(category) {
     // Add row to the category table
     const row = document.createElement('tr');
     row.innerHTML = `
-    <td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${category.title}</td>
+    <td><i class="colour-block" style="background-color: rgba(${hexToRgb(category.fill)}, ${category.fillOpacity}); border: 2px solid rgba(${hexToRgb(category.colour)}, ${category.opacity})"></i>${category.title}</td>
     <td>
         <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
         <span class="material-icons">delete</span>
@@ -400,7 +400,7 @@ function updateCategory(category) {
     settings.categories[index].fillOpacity = category.fillOpacity;
     // Update the category table
     const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
-    cells[0].innerHTML = `<i class="colour-block" style="background: ${category.fill}"></i>${category.title}`;
+    cells[0].innerHTML = `<i class="colour-block" style="background-color: rgba(${hexToRgb(category.fill)}, ${category.fillOpacity}); border: 2px solid rgba(${hexToRgb(category.colour)}, ${category.opacity})"></i>${category.title}`;
     // Update the dropdown for object category
     document.getElementById('object-category-' + category.id).text = category.title;
     M.FormSelect.init(document.getElementById("object-category"));
@@ -493,6 +493,19 @@ categoriesTable.addEventListener('click', (event) => {
         M.Modal.getInstance(document.getElementById('category-modal')).open();
     }
 });
+
+function hexToRgb(hex) {
+    // Remove the hash at the start if it's there
+    hex = hex.replace(/^#/, '');
+
+    // Parse the hex values
+    var bigint = parseInt(hex, 16);
+    var r = (bigint >> 16) & 255;
+    var g = (bigint >> 8) & 255;
+    var b = bigint & 255;
+
+    return r + "," + g + "," + b;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     var downloadGeoJSONBtn = document.getElementById('download-geojson');
