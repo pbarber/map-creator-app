@@ -24,8 +24,8 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// TODO: add tetrad names when grid shown
-// TODO: new app to click on a point and provide OSGB grid refs
+// TODO: control opacity of lines and fills
+// TODO: control colour, size and opacity of text
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
@@ -206,7 +206,7 @@ function addObject(object) {
     // Add a new row to the objects table
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>
+      <td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${object.title}</td>
       <td>
         <a class="waves-effect waves-light btn-small" data-id="${object.id}" data-action="remove">
           <span class="material-icons">delete</span>
@@ -235,7 +235,7 @@ function addObject(object) {
 
 function updateObjectTableRow(object, category) {
     const cells = document.getElementById('object-row-' + object.id).querySelectorAll('td');
-    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}"></i>${object.title}</td>`;
+    cells[0].innerHTML = `<td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${object.title}</td>`;
 }
 
 function editObject(object) {
@@ -349,8 +349,8 @@ function layerStyle(category) {
         fillColor: category.fill,
         color: category.colour,
         weight: category.weight,
-        opacity: 1,
-        fillOpacity: 0.7
+        opacity: category.opacity,
+        fillOpacity: category.fillOpacity
     };
 }
 
@@ -359,12 +359,18 @@ function addCategory(category) {
         // Ensure no ID clashes for new categories
         category.id = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1) + 1;
     }
+    if (!category.hasOwnProperty('opacity')) {
+        category.opacity = 1;
+    }
+    if (!category.hasOwnProperty('fillOpacity')) {
+        category.fillOpacity = 0.7;
+    }
     // New record - add to settings
     settings.categories.push(category);
     // Add row to the category table
     const row = document.createElement('tr');
     row.innerHTML = `
-    <td><i class="colour-block" style="background: ${category.fill}"></i>${category.title}</td>
+    <td><i class="colour-block" style="background: ${category.fill}; opacity: ${category.opacity}; fill-opacity: ${category.fillOpacity}; color: ${category.colour}"></i>${category.title}</td>
     <td>
         <a class="waves-effect waves-light btn-small" data-id="${category.id}" data-action="remove">
         <span class="material-icons">delete</span>
@@ -390,6 +396,8 @@ function updateCategory(category) {
     settings.categories[index].fill = category.fill;
     settings.categories[index].colour = category.colour;
     settings.categories[index].weight = category.weight;
+    settings.categories[index].opacity = category.opacity;
+    settings.categories[index].fillOpacity = category.fillOpacity;
     // Update the category table
     const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
     cells[0].innerHTML = `<i class="colour-block" style="background: ${category.fill}"></i>${category.title}`;
@@ -431,6 +439,8 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-fill').value = defaultColour;
         document.getElementById('category-colour').value = defaultColour;
         document.getElementById('category-weight').value = 2;
+        document.getElementById('category-opacity').value = 1;
+        document.getElementById('category-fillOpacity').value = 0.7;
     } else {
         document.getElementById('category-modal-title').textContent = "Edit a category";
         document.getElementById('category-id').value = category.id;
@@ -438,6 +448,8 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-fill').value = category.fill;
         document.getElementById('category-colour').value = category.colour;
         document.getElementById('category-weight').value = category.weight;
+        document.getElementById('category-opacity').value = Math.round(category.opacity * 100);
+        document.getElementById('category-fillOpacity').value = Math.round(category.fillOpacity * 100);
     }
     M.updateTextFields();
 }
@@ -451,7 +463,9 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         title: document.getElementById('category-title').value,
         fill: document.getElementById('category-fill').value,
         colour: document.getElementById('category-colour').value,
-        weight: document.getElementById('category-weight').value
+        weight: document.getElementById('category-weight').value,
+        opacity: document.getElementById('category-opacity').value / 100.0,
+        fillOpacity: document.getElementById('category-fillOpacity').value / 100.0
     };
     // Handle add or edit
     if (id !== "") {
@@ -719,5 +733,5 @@ out geom;
     });
 
     // Add a default category so that searches have something to attach to
-    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2});
+    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2, opacity: 1, fillOpacity: 0.7});
 });
