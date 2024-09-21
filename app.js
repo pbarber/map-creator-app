@@ -439,8 +439,8 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-fill').value = defaultColour;
         document.getElementById('category-colour').value = defaultColour;
         document.getElementById('category-weight').value = 2;
-        document.getElementById('category-opacity').value = 1;
-        document.getElementById('category-fillOpacity').value = 0.7;
+        document.getElementById('category-opacity').value = 100;
+        document.getElementById('category-fillOpacity').value = 70;
     } else {
         document.getElementById('category-modal-title').textContent = "Edit a category";
         document.getElementById('category-id').value = category.id;
