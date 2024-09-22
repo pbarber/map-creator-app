@@ -285,7 +285,8 @@ info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
     this._div.innerHTML = (
         '<b>Click <i class="fa fa-search"></i> below to search for a location</b><br />Use longpress/right-click to select locations which cannot be identified via search. The map will colour areas by their category, click Settings to change formatting.<br />' +
-        '<a href="https://github.com/pbarber/map-creator-app/blob/main/README.md">More information</a>'
+        '<a href="https://github.com/pbarber/map-creator-app/blob/main/README.md">More information</a>' + 
+        '<a class="purchase" href="https://www.buymeacoffee.com/pbarber" target="_blank" style="float: right;"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 144px !important;" ></a>'
         );
     return this._div;
 };
