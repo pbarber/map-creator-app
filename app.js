@@ -24,8 +24,6 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// TODO: add BMAC link
-
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
         Object.entries(basegrid).flatMap(o =>
