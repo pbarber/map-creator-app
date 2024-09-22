@@ -25,6 +25,8 @@ const baseLayers = {
 L.control.layers(baseLayers).addTo(map);
 
 // TODO: control colour, size and opacity of text
+// TODO: check behaviour of click mode
+// TODO: add BMAC link
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
     return Object.fromEntries(
@@ -358,21 +360,22 @@ function addCategory(category) {
         // Ensure no ID clashes for new categories
         category.id = settings.categories.reduce((a,b) => (b.id > a) ? b.id : a, -1) + 1;
     }
-    if (!category.hasOwnProperty('opacity')) {
-        category.opacity = 1;
-    }
-    if (!category.hasOwnProperty('fillOpacity')) {
-        category.fillOpacity = 0.7;
-    }
-    if (!category.hasOwnProperty('textColour')) {
-        category.textColour = 'black';
-    }
-    if (!category.hasOwnProperty('textSize')) {
-        category.textSize = 12;
-    }
-    if (!category.hasOwnProperty('textOpacity')) {
-        category.textOpacity = 1;
-    }
+
+    const defaults = {
+        opacity: 1,
+        fillOpacity: 0.7,
+        textColour: 'black',
+        textSize: 12,
+        textOpacity: 1
+    };
+
+    // Apply the defaults if not already set (e.g. from older JSON upload)
+    Object.keys(defaults).forEach(key => {
+        if (!category.hasOwnProperty(key)) {
+            category[key] = defaults[key];
+        }
+    });
+
     // New record - add to settings
     settings.categories.push(category);
     // Add row to the category table
