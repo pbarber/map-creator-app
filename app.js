@@ -24,8 +24,6 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// TODO: control colour, size and opacity of text
-// TODO: check behaviour of click mode
 // TODO: add BMAC link
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
@@ -703,7 +701,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     map.addEventListener('contextmenu', async function(event) {
-        var overpassBody;
+        var overpassBody = '';
+        var errorMsg = '';
+        var added = false;
         if (settings.clickmode=='area') {
             overpassBody = `data=
 [timeout:10]
@@ -740,44 +740,7 @@ node(w.allways)->.waynodes;
 way(pivot.allways);
 out geom;
 `;
-        } else {
-            M.toast({html: 'Unexpected mode'})
-        }
-        var result = await fetch(
-            "https://overpass-api.de/api/interpreter",
-            {
-                method: "POST",
-                body: overpassBody
-            },
-        ).then(
-            (data)=>data.json()
-        );
-        var added = false;
-        for (var r = 0; r < result.elements.length; r++) {
-            var way = result.elements[r];
-            var boundary = way.geometry.map(a => [a.lon, a.lat]);
-            if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
-                var type = 'MultiLineString';
-                if (way.nodes[0] === way.nodes.at(-1)) {
-                    type = 'Polygon';
-                }
-                addObject({
-                    title: way.tags.hasOwnProperty('name') ? way.tags.name : way.id.toString(),
-                    id: way.id,
-                    geojson: {
-                        type: type,
-                        coordinates: [boundary]
-                    },
-                    lat: event.latlng.lat,
-                    lon: event.latlng.lng,
-                    category: settings.categories[0].id,
-                    label: true
-                });
-                added = true;
-                break;
-            }
-        }
-        if (!added) {
+        } else if (settings.clickmode=='reverse') {
             search.options.geocoder.reverse(event.latlng, map.options.crs.scale(map.getZoom()), function(results) {
                 if (results[0]) {
                     if (settings.objects.filter(o => (o.id === parseInt(results[0].properties.place_id))).length === 0) {
@@ -790,14 +753,58 @@ out geom;
                             category: settings.categories[0].id,
                             label: true
                         });
+                        added = true;
                     } else {
-                        M.toast({html: 'Location is already on map, it will not be added'})
+                        errorMsg = 'Location is already on map, it will not be added';
                     }
                 }
                 else {
-                    M.toast({html: 'No location found'})
+                    errorMsg = 'No location found';
                 }
             }, {polygon_geojson: 1});
+        } else {
+            errorMsg = 'Unexpected mode';
+        }
+        if (overpassBody.length > 0) {
+            var result = await fetch(
+                "https://overpass-api.de/api/interpreter",
+                {
+                    method: "POST",
+                    body: overpassBody
+                },
+            ).then(
+                (data)=>data.json()
+            );
+            for (var r = 0; r < result.elements.length; r++) {
+                var way = result.elements[r];
+                var boundary = way.geometry.map(a => [a.lon, a.lat]);
+                if (settings.objects.filter(o => (o.id === way.id)).length === 0) {
+                    var type = 'MultiLineString';
+                    if (way.nodes[0] === way.nodes.at(-1)) {
+                        type = 'Polygon';
+                    }
+                    addObject({
+                        title: (way.hasOwnProperty('tags') && way.tags.hasOwnProperty('name')) ? way.tags.name : way.id.toString(),
+                        id: way.id,
+                        geojson: {
+                            type: type,
+                            coordinates: [boundary]
+                        },
+                        lat: event.latlng.lat,
+                        lon: event.latlng.lng,
+                        category: settings.categories[0].id,
+                        label: true
+                    });
+                    added = true;
+                    break;
+                }
+            }
+        }
+        if (errorMsg.length > 0) {
+            M.toast({html: errorMsg})
+        }
+        if (!added) {
+            M.toast({html: 'No location found'})
         }
     });
 
