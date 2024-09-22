@@ -193,8 +193,15 @@ function updateLabelLayer() {
     map.removeLayer(layers['label-layer']);
     var labels = [];
     settings.objects.filter(o => o.label).map(o => {
+        var category = settings.categories.find(c => c.id === o.category);
         var marker = new L.marker([o.lat, o.lon], { opacity: 0 });
-        marker.bindTooltip(o.title, {permanent: true, className: "map-label", offset: [-16  , 27], direction: 'center' });
+        marker.bindTooltip(o.title, {
+            permanent: true,
+            className: `map-label-${category.id}`,
+            offset: [-16, 27],
+            direction: 'center'
+        });
+
         labels.push(marker);
     });
     layers['label-layer'] = L.layerGroup(labels, {pane: 'labels'}).addTo(map);
@@ -355,6 +362,24 @@ function layerStyle(category) {
     };
 }
 
+function createCategoryStylesheet(category) {
+    const sheet = new CSSStyleSheet();
+    sheet.title = `category-text-style-${category.id}`;
+    sheet.replaceSync(`
+        .map-label-${category.id} {
+            color: rgba(${hexToRgb(category.textColour)}, ${category.textOpacity});
+        }
+    `);
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+}
+
+function removeCategoryStylesheet(id) {
+    const sheet = document.adoptedStyleSheets.find(s => s.title.startsWith(`category-text-style-${id}`));
+    if (sheet) {
+        document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet);
+    }
+}
+
 function addCategory(category) {
     if (!category.hasOwnProperty('id')) {
         // Ensure no ID clashes for new categories
@@ -364,7 +389,7 @@ function addCategory(category) {
     const defaults = {
         opacity: 1,
         fillOpacity: 0.7,
-        textColour: 'black',
+        textColour: '#000000',
         textSize: 12,
         textOpacity: 1
     };
@@ -397,7 +422,9 @@ function addCategory(category) {
     document.getElementById("object-category").append(createOption(category.title, category.id, 'object-category-' + category.id, false, false));
     M.FormSelect.init(document.getElementById("object-category"));
     // Add a new empty layer to the map
-    layers[category.id] = L.geoJson(null, {style: layerStyle(category)}).addTo(map)
+    layers[category.id] = L.geoJson(null, {style: layerStyle(category)}).addTo(map);
+    // Add the style for the new category
+    createCategoryStylesheet(category);
 }
 
 function updateCategory(category) {
@@ -422,6 +449,9 @@ function updateCategory(category) {
     updateObjectLayer(category.id);
     // Update the affected object table rows to reflect the new colours
     settings.objects.filter(o => (o.category === category.id)).map(object => updateObjectTableRow(object, category))
+    // Replace the stylesheet
+    removeCategoryStylesheet(category.id);
+    createCategoryStylesheet(category);
 }
 
 function removeCategory(id) {
@@ -443,6 +473,8 @@ function removeCategory(id) {
     }
     // Remove the layer from the map
     map.removeLayer(layers[id]);
+    // Remove the stylesheet
+    removeCategoryStylesheet(id);
 }
 
 function setCategoryFormFields(add, category) {
@@ -455,8 +487,8 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-weight').value = 2;
         document.getElementById('category-opacity').value = 100;
         document.getElementById('category-fillOpacity').value = 70;
-        document.getElementById('category-text-colour').value = 'black';
-        document.getElementById('category-text-cize').value = 12;
+        document.getElementById('category-text-colour').value = '#000000';
+        document.getElementById('category-text-size').value = 12;
         document.getElementById('category-text-opacity').value = 100;
     } else {
         document.getElementById('category-modal-title').textContent = "Edit a category";
@@ -561,8 +593,8 @@ document.addEventListener('DOMContentLoaded', function() {
             settings.clickmode = this.value;
         });
     });
-    
-    map.on("zoomend", function (event) { 
+
+    map.on("zoomend", function (event) {
         if (layers.hasOwnProperty('osgb-tetrad-layer') && layers['osgb-tetrad-layer'] !== null) {
             if (event.target._zoom > 10) {
                 if (!map.hasLayer(layers['osgb-tetrad-layer'])) {
@@ -686,9 +718,9 @@ out geom;
 node(around:10,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
 way(bn.aroundnodes)[highway~".*"]->.allways;
 node(w.allways)->.waynodes;
-( 
-    node.waynodes.aroundnodes; 
-    way.allways.allways; 
+(
+    node.waynodes.aroundnodes;
+    way.allways.allways;
     );
 way(pivot.allways);
 out geom;
@@ -700,9 +732,9 @@ out geom;
 node(around:10,${event.latlng.lat},${event.latlng.lng})->.aroundnodes;
 way(bn.aroundnodes)[railway~".*"]->.allways;
 node(w.allways)->.waynodes;
-( 
-    node.waynodes.aroundnodes; 
-    way.allways.allways; 
+(
+    node.waynodes.aroundnodes;
+    way.allways.allways;
     );
 way(pivot.allways);
 out geom;
@@ -769,5 +801,5 @@ out geom;
     });
 
     // Add a default category so that searches have something to attach to
-    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2, opacity: 1, fillOpacity: 0.7, textColour: 'black', textSize: 12, textOpacity: 100});
+    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2, opacity: 1, fillOpacity: 0.7, textColour: '#000000', textSize: 12, textOpacity: 1});
 });
