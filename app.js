@@ -368,6 +368,7 @@ function createCategoryStylesheet(category) {
     sheet.replaceSync(`
         .map-label-${category.id} {
             color: rgba(${hexToRgb(category.textColour)}, ${category.textOpacity});
+            font-size: ${category.textSize}px;
         }
     `);
     document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
