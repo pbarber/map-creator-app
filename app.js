@@ -24,7 +24,6 @@ const baseLayers = {
 };
 L.control.layers(baseLayers).addTo(map);
 
-// TODO: control opacity of lines and fills
 // TODO: control colour, size and opacity of text
 
 function calculate_5x5_grid(basegrid, lettergrid, size) {
@@ -365,6 +364,15 @@ function addCategory(category) {
     if (!category.hasOwnProperty('fillOpacity')) {
         category.fillOpacity = 0.7;
     }
+    if (!category.hasOwnProperty('textColour')) {
+        category.textColour = 'black';
+    }
+    if (!category.hasOwnProperty('textSize')) {
+        category.textSize = 12;
+    }
+    if (!category.hasOwnProperty('textOpacity')) {
+        category.textOpacity = 1;
+    }
     // New record - add to settings
     settings.categories.push(category);
     // Add row to the category table
@@ -398,6 +406,9 @@ function updateCategory(category) {
     settings.categories[index].weight = category.weight;
     settings.categories[index].opacity = category.opacity;
     settings.categories[index].fillOpacity = category.fillOpacity;
+    settings.categories[index].textColour = category.textColour;
+    settings.categories[index].textSize = category.textSize;
+    settings.categories[index].textOpacity = category.textOpacity;
     // Update the category table
     const cells = document.getElementById('category-row-' + category.id).querySelectorAll('td');
     cells[0].innerHTML = `<i class="colour-block" style="background-color: rgba(${hexToRgb(category.fill)}, ${category.fillOpacity}); border: 2px solid rgba(${hexToRgb(category.colour)}, ${category.opacity})"></i>${category.title}`;
@@ -441,6 +452,9 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-weight').value = 2;
         document.getElementById('category-opacity').value = 100;
         document.getElementById('category-fillOpacity').value = 70;
+        document.getElementById('category-text-colour').value = 'black';
+        document.getElementById('category-text-cize').value = 12;
+        document.getElementById('category-text-opacity').value = 100;
     } else {
         document.getElementById('category-modal-title').textContent = "Edit a category";
         document.getElementById('category-id').value = category.id;
@@ -450,6 +464,9 @@ function setCategoryFormFields(add, category) {
         document.getElementById('category-weight').value = category.weight;
         document.getElementById('category-opacity').value = Math.round(category.opacity * 100);
         document.getElementById('category-fillOpacity').value = Math.round(category.fillOpacity * 100);
+        document.getElementById('category-text-colour').value = category.textColour;
+        document.getElementById('category-text-size').value = category.textSize;
+        document.getElementById('category-text-opacity').value = Math.round(category.textOpacity * 100);
     }
     M.updateTextFields();
 }
@@ -465,7 +482,10 @@ document.getElementById('category-modal-form').addEventListener('submit', functi
         colour: document.getElementById('category-colour').value,
         weight: document.getElementById('category-weight').value,
         opacity: document.getElementById('category-opacity').value / 100.0,
-        fillOpacity: document.getElementById('category-fillOpacity').value / 100.0
+        fillOpacity: document.getElementById('category-fillOpacity').value / 100.0,
+        textColour: document.getElementById('category-text-colour').value,
+        textSize: document.getElementById('category-text-size').value,
+        textOpacity: document.getElementById('category-text-opacity').value / 100.0
     };
     // Handle add or edit
     if (id !== "") {
@@ -746,5 +766,5 @@ out geom;
     });
 
     // Add a default category so that searches have something to attach to
-    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2, opacity: 1, fillOpacity: 0.7});
+    addCategory({title: 'Default', id: 0, fill: defaultColour, colour: defaultColour, weight: 2, opacity: 1, fillOpacity: 0.7, textColour: 'black', textSize: 12, textOpacity: 100});
 });
